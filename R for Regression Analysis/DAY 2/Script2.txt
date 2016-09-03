@@ -1,0 +1,141 @@
+###################### FIRST : SIMPLE LINEAR REGRESSION ######################
+
+##### Model Fitting #####
+
+advertising = read.csv(file.choose(), head=TRUE)
+head(advertising)
+
+lm.fit <- lm(Sales ~ TV, data=advertising)
+summary(lm.fit)
+
+predict(lm.fit, data.frame(TV = 100), interval = "confidence")
+predict(lm.fit, data.frame(TV = 100), interval = "prediction")
+
+plot(advertising$TV, advertising$Sales, main = "Scatterplot of Sales vs. TV", xlab="TV", ylab="Sales", col = "blue")
+abline(lm.fit, col = "red")
+
+## EXERCISE(With data "AUto" in Package "ISLR")
+## y = mpg , x = horsepower
+#install.packages("ISLR")
+library(ISLR)
+
+data("Auto")
+head(Auto)
+#?Auto
+
+pairs(Auto)
+
+fit <- lm(mpg ~ horsepower, data = Auto)
+summary(fit)
+
+predict(fit, data.frame(horsepower = 98), interval = "confidence")
+predict(fit, data.frame(horsepower = 98), interval = "prediction")
+
+plot(Auto$horsepower, Auto$mpg, main = "Scatterplot of mpg vs. horsepower", xlab = "horsepower", ylab = "mpg", col = "blue")
+abline(fit, col = "red")
+
+##### One-way ANOVA #####
+
+## simple linear regression 1 (H0: beta=0)
+x1<-rep(1:4,rep(20,4))
+y<-rnorm(20*4)
+
+fit1<-lm(y~x1)
+summary(fit1)
+
+
+## simple linear regression 2 (H0: beta=0)
+x2<-rep(c(1,2,8,16),rep(20,4))
+
+fit2<-lm(y~x2)
+summary(fit2)
+
+
+## one-way ANOVA (H0: mu_1 = mu_2 = mu_3 = mu_4)
+x01<-as.factor(x1)
+fit01<-lm(y~x01)
+summary(fit01)
+
+anova(fit01)
+
+x02<-as.factor(x2)
+fit02<-lm(y~x02)
+summary(fit02)
+
+anova(fit02)
+
+
+## manual calculation for one-way ANOVA
+m<-c()
+sse<-ssr<-0
+for(i in 1:4){
+  ind<-which(x1==i)
+  m[i]<-mean(y[ind])
+  sse<-sse+sum((y[ind]-m[i])^2)
+  ssr<-ssr+length(ind)*(m[i]-mean(y))^2
+}
+
+f<-(ssr/3)/(sse/(length(y)-4))
+
+sse
+ssr
+f
+
+1-pf(f,3,length(y)-4)
+
+## REMOVE ALL!!!
+rm(list=ls(all=TRUE))
+
+
+
+###################### SECOND : MULTIPLE LINEAR REGRESSION ######################
+
+##### Model Fitting #####
+
+advertising = read.csv(file.choose(), head=TRUE)
+advertising = advertising[,-1]
+head(advertising)
+
+lm.fit <- lm(Sales ~ TV + Radio + Newspaper, data=advertising)
+summary(lm.fit)
+
+cor(advertising)
+
+predict(lm.fit, data.frame(TV = 100, Radio = 40, Newspaper = 60), interval = "confidence")
+predict(lm.fit, data.frame(TV = 100, Radio = 40, Newspaper = 60), interval = "prediction")
+
+## EXERCISE(With data "AUto" in Package "ISLR")
+## y = mpg , x = horsepower, cylinders, displacement, weight, acceleration, year, origin
+#install.packages("ISLR")
+library(ISLR)
+
+data("Auto")
+head(Auto)
+#?Auto
+
+fit2 <- lm(mpg ~ . - name, data = Auto)
+summary(fit2)
+
+# 변수선택은 매우 어려운 문제지만, 여기서는 연습 삼아 연속형 변수 중 원하는 것만 선택하자.
+fit3 <- lm(mpg ~ displacement + horsepower + weight, data = Auto)
+summary(fit3)
+
+predict(fit3, data.frame(displacement = 380, horsepower = 150, weight = 3500), interval = "confidence")
+predict(fit3, data.frame(displacement = 380, horsepower = 150, weight = 3500), interval = "prediction")
+
+
+##### without lm function... #####
+
+### data loading: stackloss
+data(stackloss)
+head(stackloss)
+
+X<-stackloss[,-4]
+Y<-stackloss[,4]
+X1<-cbind(1,X)
+X1<-as.matrix(X1,nrow=nrow(X1),ncol=ncol(X1))
+
+solve(t(X1) %*% X1) %*% t(X1) %*% Y
+
+lm(stack.loss ~ ., data=stackloss)
+

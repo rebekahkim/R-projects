@@ -1,0 +1,99 @@
+###################### FIRST : MULTIPLE LINEAR REGRESSION ######################
+
+##### Model Fitting #####
+
+advertising = read.csv(file.choose(), head=TRUE)
+advertising = advertising[,-1]
+head(advertising)
+
+lm.fit <- lm(Sales ~ TV + Radio + Newspaper, data=advertising)
+summary(lm.fit)
+
+cor(advertising)
+
+predict(lm.fit, data.frame(TV = 100, Radio = 40, Newspaper = 60), interval = "confidence")
+predict(lm.fit, data.frame(TV = 100, Radio = 40, Newspaper = 60), interval = "prediction")
+
+library(ISLR)
+
+data("Auto")
+head(Auto)
+
+fit2 <- lm(mpg ~ . - name, data = Auto)
+summary(fit2)
+
+fit3 <- lm(mpg ~ displacement + horsepower + weight, data = Auto)
+summary(fit3)
+
+predict(fit3, data.frame(displacement = 380, horsepower = 150, weight = 3500), interval = "confidence")
+predict(fit3, data.frame(displacement = 380, horsepower = 150, weight = 3500), interval = "prediction")
+
+
+
+###################### SECOND : CONTRAST TESTING ######################
+
+##### contrast testing #####
+
+## data loading: stackloss
+data(stackloss)
+head(stackloss)
+
+X<-stackloss[,-4]
+Y<-stackloss[,4]
+X<-cbind(1,X)
+X<-as.matrix(X,nrow=nrow(X),ncol=ncol(X))
+
+solve(t(X) %*% X) %*% t(X) %*% Y
+
+lm(stack.loss ~ ., data=stackloss)
+
+## contrast testing (H0: beta_1 + beta_2 = beta_3)
+
+X0<-X[,-1]
+(L<-matrix(c(1,0,1,0,1,1,0,0,1),nrow=3,ncol=3))
+X_ctr<-X0%*%L	# (or) X_ctr<-cbind(X0[,1]+X0[,3],X0[,2]+X0[,3],X0[,3])
+
+(colnames(X_ctr)<-c('X1+X3','X2+X3','X3'))
+
+fit0<-lm(Y~X_ctr[,-3])
+fit<-lm(Y~X_ctr)
+
+anova(fit0,fit)
+
+
+## manual calculation for contrast testing (Lecture Note week 4, p.12)
+
+fit_full<-lm(stack.loss~.,data=stackloss)
+beta_hat<-fit_full$coef
+
+C<-c(0,1,1,-1)
+
+msr<-c((t(beta_hat)%*%C)^2/(t(C)%*%solve(t(X)%*%X)%*%C))
+mse<-sum(fit_full$resid^2)/(nrow(X)-ncol(X))
+f<-msr/mse
+
+msr
+mse
+f
+
+1-pf(f,1,nrow(X)-ncol(X))
+
+## REMOVE ALL!!!
+rm(list=ls(all=TRUE))
+
+## Exercise : test H0 : the coefficients of Radio and Newspaper in Advertising are zero.
+advertising = read.csv(file.choose(), head=TRUE)
+advertising = advertising[,-1]
+head(advertising)
+
+X = advertising[,-4]
+Y = advertising[,4]
+
+L = matrix(c(1,0,0,0,0,1),3)
+(X_ctr<-as.matrix(X)%*%L)        
+
+fit0<-lm(Y~X_ctr)
+fit<-lm(Y~as.matrix(X))
+
+anova(fit0,fit)
+

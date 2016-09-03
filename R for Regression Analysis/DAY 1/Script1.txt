@@ -1,0 +1,567 @@
+###################### FIRST : GENERATE THE OBJECT(or DATA TYPES) ######################
+
+################### OBJECT : vector ###################
+
+x <- c(2,1,1,3)
+
+Y <- 2 ; Y 
+y <- 1:4 ; Y ; y
+
+2^(0:5)
+10*(1:3)
+
+x+y;2*x^2+1
+x[1] <- 99
+x[c(2,3)] <- 3:4 ; x
+
+pi
+exp(1)
+
+# addition : basic statistics...
+sum(x);mean(x);var(x);sd(x)
+
+# addition : sequence
+y <- seq(from=1, to=10, by=3) ; y
+y <- seq(from=1, to=11, by=3) ; y
+
+?seq #도움말, 모르거나 syntax가 기억나지 않는 함수는 꼭 찾아보자!!
+
+seq(from=3, to=10, length.out=1000) 
+rep(c(0,1), c(3,5)) #0을 3번 1을 5번
+
+################### OBJECT : matrix ###################
+
+A <- matrix(x, nrow=2, ncol=2) ; A
+t(A)
+solve(A) %*% A
+diag(1:10) #10x10 diagonal matrix
+diag(4) #4x4 identity matrix  
+diag(A) <- 2 #diagonal elements of A 에 2를 다 넣어준다.
+diag(10, 3, 4)
+
+A2 <- matrix(seq(3,10,length.out=12), nrow=4 ,byrow=T)
+A2[2,1]
+A2[3:4,]
+
+matrix(1, nrow=4 ,ncol=4, byrow=T)
+
+#addtion : bind
+P <- matrix(1, nrow=4 ,ncol=4, byrow=T); P
+Q <- matrix(2, nrow=4 ,ncol=4, byrow=T); Q
+rbind(P,Q)
+cbind(P,Q)
+
+################### OBJECT : data.frame ###################
+
+B <- data.frame(a=1:5, b=2:6)
+c("c", "d")
+colnames(B) <- c("c", "d")
+
+as.data.frame(A2)
+colnames(A2) <- paste("X",1:3, sep="") #?paste
+
+paste("X",c(1,2,9), sep="")
+
+#txt, csv파일 만든후 실행
+read.table("D:\\class.txt", header=T)
+B2 <- read.table("D:\\class.txt", header=T)
+
+#내가 뭘 받은걸까?
+head(B2)
+tail(B2)
+
+class(B2); class(A)
+
+B3 <- read.csv("D:\\simple.csv",header=T)
+
+# addition : basic statistics...
+summary(B2)
+
+#TIP
+read.table(file.choose())
+read.table(file.choose(),header=T)
+
+#addtion : bind
+P <- matrix(1, nrow=4 ,ncol=4, byrow=T); P
+Q <- matrix(2, nrow=4 ,ncol=4, byrow=T); Q
+
+N <- as.data.frame(P)
+M <- as.data.frame(Q)
+rbind(N,M)
+cbind(N,M)
+
+################### OBJECT : list ###################
+
+All <- list(1:5,matrix(1:4,nrow=2), B) ; All
+All[2]
+All[[1]]
+names(All) <- c("FFF","III","RRR") ; All
+
+All$FFF
+
+attach(All) #data.frame에서도 마찬가지
+
+FFF
+
+detach(All) #data.frame에서도 마찬가지
+
+#### 여기부터는 부가적인 내용으로 예제만 살펴봅시다.
+
+################### OBJECT(ADDITION) : strings ###################
+
+b <- c("hello","there")
+
+################### OBJECT(ADDITION) : factor ###################
+
+tree <- read.csv(file="D://trees91.csv",header=TRUE,sep=",");
+names(tree)
+
+tree$C
+summary(tree$C)
+
+factor(tree$C)
+tree$C <- factor(tree$C)
+summary(tree$C)
+
+################### OBJECT(ADDITION) : Table ###################
+
+a <- factor(c("A","A","B","A","B","B","C","A","C"))
+(results <- table(a))
+
+a <- c("Sometimes","Sometimes","Never","Always","Always","Sometimes","Sometimes","Never")
+b <- c("Maybe","Maybe","Yes","Maybe","Maybe","No","Yes","No")
+results <- table(a,b)
+results
+
+################### AFTER OF ALL... ###################
+
+#콘솔창 지우기 : ctrl+L을 누르세요.
+
+#모든 오브젝트 지우기
+ls()
+rm(list=ls())
+rm(list=ls(all=TRUE))
+
+###################### SECOND : Basic technique for treating data & Function ######################
+
+#패키지 설치
+install.packages("corrplot") #패키지 설치
+library(corrplot) #패키지 불러오기
+search() #사용중인 패키지 목록
+
+# rep
+rep(1,10)
+rep(1:5,each=2)
+rep(1:5,times=2)
+
+# seq
+seq(from=1,to=10,by=2)
+seq(from=1,to=10,length.out=5)
+
+# character - paste (붙이기)
+variable <- paste("A",1:10,sep="")
+variable.sum <- paste(variable,collapse="+")
+paste("Y~",variable.sum)
+paste(1:5,6:9,sep="a",collapse="b")
+
+# character - substr (추출)
+substr("Hellow World", start=8,stop=12)
+
+# apply
+component <- c(3,4,2,1,5)
+A <- data.frame(a=c(3,4,2,1,5),b=component+100, c=component-3)
+apply(A,2,mean)
+apply(A,2,sd)
+
+# 정렬
+sort(component)
+order(component)
+component[order(component)]
+A[ order(A[,1]), ] #A의 첫번째 열순으로 정렬
+
+################### Plots in R ###################
+
+# scatter plot
+x <- 1:5
+y <- c(3,4,2,1,5)
+plot(x,y) 
+
+# 여러창 띄우기
+plot(x,y)
+windows()
+plot(x,y+10) #새창에 띄움
+
+# 한번에 여러개
+par(mfrow=c(2,1)) #2 X 1
+plot(x,y)
+plot(x,y+10)
+
+# plot options
+x <- seq(-5,5,length.out=1000)
+y <- x^2
+plot(x,y,type='l',col=2,lwd=3,lty=3,xlim=c(-3,3)) #y=x^2의 그래프. 여러 옵션 추가 가능
+abline(0,1) #y=0+1*x를 추가로 그림
+
+# Normal distribution
+x <- seq(0,7,length.out=1000)
+mu <- 3;sigma <- 2
+N_3_2 <- exp(-(x-mu)^2 / sigma^2)/sqrt(2*pi*sigma^2)
+plot(x,N_3_2, type='l', xlab="x",ylab=expression(phi(x)) #x축, y축, 제목 변경
+     , main="Normal distribution")
+
+# lines는 plot에 겹쳐 그리는데 사용 (points도 마찬가지)
+mu <- 4
+N_4_2 <- exp(-(x-mu)^2 / sigma^2)/sqrt(2*pi*sigma^2)
+lines(x,N_4_2,col=2,lty=2)
+
+legend("topright", c("N(3,4)","N(4,4)"), lty=c(1,2), col=c(1,2)) #범례
+
+abline(v=3) #수직선
+abline(h=0.4, col=2, lty=2) #수평선
+
+setwd("D:\\") #work directory 설정
+getwd() #현재 work directory 확인
+mydata <- read.csv("trees91.csv")
+
+# 산점도 행렬
+pairs(mydata[,5:10])
+
+# corrplot 패키지 이용한 상관계수 행렬
+R <- cor(mydata[,5:10])
+corrplot(R, method="circle", type="lower")
+
+# 히스토그램
+hist(mydata[,5], xlab="x", main=colnames(mydata)[5])
+
+# 상자그림
+boxplot(mydata[,5:6])
+
+
+################### function1 ###################
+# f(x)=x^3
+f <- function(x){ #함수 생성
+  return(x^3)
+}
+
+f(2) #함수 적용
+
+# trace(A)
+trace <- function(A, b=-10){ #함수 생성
+  return( sum(diag(A))+b )
+}
+
+AA <- matrix(1:16,4)
+trace(AA) #함수 적용
+trace(AA, b=0) #함수 적용
+
+# 기타 함수
+# input, return은 필수?
+ff <- function(){
+  print("Hi")  
+}
+
+ff
+ff()
+
+#함수 내부에서 사용된 변수들은 evaluation이 끝나면?
+f <- function(x){ 
+  abc <- x^3
+  print(ls())
+  return(abc)
+}
+f(3)
+ls()
+
+#함수 내부에서 지정되지 않은 object는 함수 바깥에서 가져와서 사용함
+y <-  3
+f <- function(x){ 
+  abc <- x^3+y
+  return(abc)
+}
+f(3)
+y <-0; f(3)
+
+################### function2 ###################
+
+# f(x)=x^3
+f <- function(x){ #함수 생성
+  return(x^3)
+}
+
+f(2) #함수 적용
+
+# trace(A)
+trace <- function(A, b=-10){ #함수 생성
+  return( sum(diag(A))+b )
+}
+
+AA <- matrix(1:16,4)
+trace(AA) #함수 적용
+trace(AA, b=0) #함수 적용
+
+# 기타 함수
+# input, return은 필수?
+ff <- function(){
+  print("Hi")  
+}
+
+ff
+ff()
+
+#함수 내부에서 사용된 변수들은 evaluation이 끝나면?
+f <- function(x){ 
+  abc <- x^3
+  print(ls())
+  return(abc)
+  
+}
+f(3)
+ls()
+
+#ERROR TIME!
+f <- function(x){ 
+  abc <- x^3
+  print(ls())
+  return(abc, x)
+  
+}
+f(3)
+
+#Fix...Fix...Fix...
+f <- function(x){ 
+  abc <- x^3
+  print(ls())
+  return(c(abc, x))
+  
+}
+f(3)
+
+#함수 내부에서 지정되지 않은 object는 함수 바깥에서 가져와서 사용함
+y <-  3
+f <- function(x){ 
+  abc <- x^3+y
+  return(abc)
+}
+f(3)
+y <-0; f(3)
+
+################### conditional executions ###################
+
+1==0 #같은가?
+1!=0 #다른가?
+1>2 #큰가?
+1<=2 #크거나 같은가?
+(1>0)&(1>1) #이것도 맞고 저것도 맞는가? = and
+(1>0)|(1>1) #둘 중 하는 맞는가? = or
+!(1>0) #틀린가? = not
+"ABC" == "ABC"
+
+################### IF ###################
+
+if(1==1) print(1)
+
+x<-1.1
+if(x==1){
+  print(1)
+}else if(x==2){
+  print(2)
+}else{
+  print(3)
+}
+
+x = 2.0 # =도 된다...
+if ( x < 0.2){
+  x <- x + 1
+  cat("increment that number!\n")
+} else {
+  x <- x - 1
+  cat("nah, make it smaller.\n");
+}
+x
+
+#참고
+age <- 150
+cat("My age = ", age, "\n")
+half <- 150
+cat("My age = ", age <- half* 2, "\n")
+
+################### loop ###################
+
+x<-0
+for(i in 1:10){
+  x<-x+i
+} 
+x
+
+for (lupe in seq(0,1,by=0.3))
+{
+  cat(lupe,"\n");
+}
+
+sequence <- 2^(0:9)
+x<-0
+for(jj in sequence){
+  x<-x+jj
+} 
+x
+
+#While : FALSE에서 뛰쳐나간다.
+x<-0
+i<-1
+while(i<=10){
+  x<-x+i
+  i<-i+1
+}
+x
+
+#While만 뛰쳐나가나? Break과 함께라면 for도...
+x<-0
+for(i in 1:10){
+  if(i > 5) break
+  x<-x+i
+} 
+x
+
+x<-0
+for(i in 1:10){
+  x<-x+i
+  if(i > 5) break
+} 
+x
+
+for (i in 1:3){
+  for (j in 1:3){
+    for (k in 1:3){
+      if(i==1 & j==1 & k==1) cat("i   j   k \n")
+      cat(i," ",j," ",k,"\n")
+      if (k ==1) break
+    }   
+  }
+}   
+
+#Exercise
+fac <- function(n){
+  if(n==0) return(1)
+  a <- 1
+  for(i in 1:n){
+    a <- a*i
+  }
+  return(a)
+}
+
+#Recursive...?
+
+#error
+err.e <- function(err=1e-05){
+  n <- 0
+  sum1 <- 1/fac(n) 
+  while( abs(sum1-exp(1))>err ){
+    n <- n+1
+    sum1 <- sum1 + 1/fac(n)  
+  }
+  return(n)
+}
+err.e()
+
+###################### Third : Functions for Statistical simulation ######################
+
+################### distribution ###################
+#~에 들어갈 수 있는 분포들은 ?distribution에서 확인
+#d~ : probability density function(pdf) 
+dnorm(0, mean=0, sd=1)
+#q~ : quantile
+qnorm(0.5, mean=0, sd=1)
+#p~ : P(X<=x) i.e. cumulative distribution function(cdf)
+pnorm(0, mean=0, sd=1)
+#r~ : random sample
+rnorm(0, mean=0, sd=1)
+
+# pdf of Normal distribution
+par(mfrow=c(1,2))
+x <- seq(0,7,length.out=1000)
+N_3_2 <- dnorm(x, mean=3, sd=2)
+plot(x,N_3_2, type='l', xlab="x",ylab="pdf" #x축, y축, 제목 변경
+     , main="Normal distribution")
+mu <- 4; N_4_2 <- dnorm(x, mean=4, sd=2)
+lines(x,N_4_2,col=2,lty=2)
+
+# cdf of Normal distribution
+cdf_N_3_2 <- pnorm(x, mean=3, sd=2)
+plot(x,cdf_N_3_2, type='l', xlab="x",ylab="cdf" #x축, y축, 제목 변경
+     , main="Normal distribution")
+mu <- 4; cdf_N_4_2 <- pnorm(x, mean=4, sd=2)
+lines(x,cdf_N_4_2,col=2,lty=2)
+
+#random sample from N(0,1)
+X <- rnorm(n=100)
+hist(X, freq=F)
+x <- seq(-3,3, length.out=500)
+lines( x, dnorm(x))
+
+
+################### sample ###################
+#sample : 유한 모집단에서 단순임의추출로 표본을 생성하는 함수
+sample(1:10, size=2)
+sample( c(12,36,58,66,88,34,40,24,77,34,46,57,76,78,21) , 5)
+
+#replace=FALSE(default)이면 SRSWOR, replace=TRUE이면 SRSWR 
+sample(1:5, 5, replace=F)
+sample(1:5, 5, replace=T)
+
+
+################### SRS ###################
+set.seed(100)
+#Generating data
+N.h <- c(123, 100, 200)
+N <- sum(N.h)
+W.h <- N.h/N
+X1 <- c( rnorm(N.h[1], mean=170, sd=13),
+         rnorm(N.h[2], mean=162, sd=10),
+         rnorm(N.h[3], mean=200, sd=10))
+Group <- c( rep('M', N.h[1]), rep('F', N.h[2]), rep('G', N.h[3]) )
+X <- data.frame(X1, Group)
+group <- c('M', 'F', 'G')
+dim(X)
+head(X)
+pop.mean <- mean(X[,1]) #모평균
+
+#SRS
+n <- 100 #표본 크기
+SRS.i <- sort(sample(1:nrow(X), n)) 
+SRS.sample <- X[SRS.i,] #표본
+nrow(SRS.sample)
+
+#표본평균
+sample.mean <- mean(SRS.sample[,1]) 
+#표본평균 분산의 추정량
+var.sample.mean <- (1-n/N)*var(SRS.sample[,1])/n
+#95% 신뢰구간
+se <- sqrt(var.sample.mean)
+z.025 <- qnorm(.025, lower=F)
+ci <- c(sample.mean - z.025*se, sample.mean + z.025*se)
+
+#신뢰구간의 이해
+coverage <- function(n, M=1000){
+  count <- 0
+  
+  for (i in 1:M){
+    SRS.i <- sort(sample(1:nrow(X), n)) 
+    SRS.sample <- X[SRS.i,] #표본
+    
+    #표본평균
+    sample.mean <- mean(SRS.sample[,1]) 
+    #표본평균 분산의 추정량
+    var.sample.mean <- (1-n/N)*var(SRS.sample[,1])/n
+    #95% 신뢰구간
+    se <- sqrt(var.sample.mean)
+    z.025 <- qnorm(.025, lower=F)
+    ci <- c(sample.mean - z.025*se, sample.mean + z.025*se)
+    
+    if( (ci[1]< pop.mean) & (pop.mean< ci[2]) ) count=count+1
+  }
+  
+  result <- count/M
+  return( result )
+}
+coverage(n=200)
+

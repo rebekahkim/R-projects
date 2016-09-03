@@ -1,0 +1,236 @@
+#####
+#####   variable selection procedure with simulation data
+#####
+
+
+
+### install packages: LARS and multivariate normal random number generator
+
+install.packages('mvtnorm')
+install.packages('lars')
+
+library(mvtnorm)
+library(lars)
+library(MASS)
+
+
+
+### basic example for using 'step' function
+
+swiss_null<-lm(Fertility~1,data=swiss)
+swiss_full<-lm(Fertility~.,data=swiss)
+
+summary(swiss_null)
+summary(swiss_full)
+
+swiss_f<-step(swiss_null,scope=list(lower=swiss_null,upper=swiss_full),direction='forward')
+swiss_s<-step(swiss_null,scope=list(lower=swiss_null,upper=swiss_full),direction='both')
+swiss_b<-step(swiss_full,direction='backward')
+
+summary(swiss_f)
+summary(swiss_s)
+summary(swiss_b)
+
+swiss_f$anova
+swiss_s$anova
+swiss_b$anova
+
+
+# pairwise interaction models
+
+swiss_inter<-lm(Fertility~.^2,data=swiss)
+
+summary(swiss_inter)
+
+swiss_inter_f<-step(swiss_full,scope=list(lower=swiss_full,upper=swiss_inter),direction='forward')
+swiss_inter_s<-step(swiss_full,scope=list(lower=swiss_full,upper=swiss_inter),direction='both')
+swiss_inter_b<-step(swiss_inter,scope=list(lower=swiss_full,upper=swiss_inter),direction='backward')
+
+summary(swiss_inter_f)
+summary(swiss_inter_s)
+summary(swiss_inter_b)
+
+swiss_inter_f$anova
+swiss_inter_s$anova
+swiss_inter_b$anova
+
+
+
+### simulation
+
+p<-10
+
+data_gen<-function(n){
+    
+    # independent covariates x1, x2, x3 and x4
+
+    x1<-runif(n,-2,2)
+    x2<-rnorm(n)
+    x3<-rf(n,2,5)
+    x4<-rexp(n,4)
+
+
+    # multivariate normal covariates x5, x6, x7 and x8
+    
+    S_11<-diag(c(2,1))
+    S_22<-diag(c(1.5,0.9))
+    
+    S_12<-matrix(c(0.3,0.5,-0.4,-0.7),nrow=2,ncol=2)
+    
+    tmp1<-cbind(S_11, S_12)
+    tmp2<-cbind(t(S_12),S_22)
+    
+    S<-rbind(tmp1,tmp2)
+    det(S)
+    
+    x5678<-rmvnorm(n,rep(0,4),S)
+    
+
+    # multicollinear covariates x9 and x10
+
+    x9<-0.1*x1-0.2*x2+rnorm(n)
+    x10<-0.2*x5678[,4]+rnorm(n)
+    
+    x<-cbind(x1,x2,x3,x4,x5678,x9,x10)
+    colnames(x)<-c('x1','x2','x3','x4','x5','x6','x7','x8','x9','x10')
+    
+
+    # regression coefficient
+    
+    beta<-c(0.2,0,0,0,0,0,0,-0.2,0,0)
+    ind<-which(beta!=0)
+    
+    beta_true<-beta[ind]
+    x_true<-x[,ind]
+    
+
+    # response variable
+
+    y<-x%*%beta+rnorm(n,mean=0,sd=0.3)
+    
+    return(list(Y=y,X=x,X_true=x_true,Beta=beta,Beta_true=beta_true,Ind=ind))
+}
+
+
+# data generation
+
+n<-30
+
+set.seed(2)
+data<-data_gen(n)
+
+y<-data$Y
+x<-data$X
+x_true<-data$X_true
+beta<-data$Beta
+beta_true<-data$Beta_true
+ind<-data$Ind
+
+round(cor(x)*100,1)
+
+
+# multiple linear regression
+
+sim_data<-data.frame(y,x)
+
+fit_0<-lm(y~1,data=sim_data)
+fit<-lm(y~.,data=sim_data)
+fit_true<-lm(y~x_true)
+
+summary(fit_0)
+summary(fit)
+summary(fit_true)
+
+
+# variable selection via 'step' function
+
+step_f<-step(fit_0,scope=list(lower=fit_0,upper=fit),direction='forward')
+step_s<-step(fit_0,scope=list(lower=fit_0,upper=fit),direction='both')
+step_b<-step(fit,direction='backward')
+
+summary(step_f)
+summary(step_s)
+summary(step_b)
+
+
+# L1-penalized least squares estimation (LASSO) via 'lars' package
+
+fit_shr<-lars(x,y,type='lasso')
+plot(fit_shr)
+
+cp<-fit_shr$Cp
+aic<-log(sqrt(fit_shr$RSS/n))+(fit_shr$df-1)/n*2
+bic<-log(sqrt(fit_shr$RSS/n))+(fit_shr$df-1)/n*log(n)
+
+ind_cp<-which(cp==min(cp))
+ind_aic<-which(aic==min(aic))
+ind_bic<-which(bic==min(bic))
+
+round(fit_shr$beta[ind_cp,],3)
+round(fit_shr$beta[ind_aic,],3)
+round(fit_shr$beta[ind_bic,],3)
+
+plot(bic)
+
+
+# comparison: variable selection
+
+step_f$call
+step_s$call
+step_b$call
+
+which(fit_shr$beta[ind_cp,]!=0)
+which(fit_shr$beta[ind_aic,]!=0)
+which(fit_shr$beta[ind_bic,]!=0)
+
+
+# true variable index
+
+ind
+
+
+
+### prediction
+
+n<-1000
+
+set.seed(100)
+data<-data_gen(n)
+
+y_test<-data$Y
+x_test<-data$X
+
+
+# OLS
+
+y_pred_ols<-fit$coef[1]+x_test%*%fit$coef[-1]
+
+
+# Stepwise selection
+
+y_pred_step<-step_s$coef[1]+x_test[,c(1,8,10,5)]%*%step_s$coef[-1]
+
+
+# Ridge
+
+select(lm.ridge(y~.,data=sim_data,lambda = seq(0,0.1,0.0001)))
+fit_ridge<-lm.ridge(y~.,data=sim_data,lambda=0.1)
+
+y_pred_ridge<-fit_shr$mu+x_test%*%(fit_ridge$coef/fit_ridge$scale)
+
+
+# LASSO
+
+y_pred_lasso<-fit_shr$mu+x_test%*%fit_shr$beta[ind_aic,]
+
+
+# prediction error
+
+pe_ols<-sum((y_test-y_pred_ols)^2)
+pe_step<-sum((y_test-y_pred_step)^2)
+pe_ridge<-sum((y_test-y_pred_ridge)^2)
+pe_lasso<-sum((y_test-y_pred_lasso)^2)
+pe_null<-sum((y_test-mean(y))^2)
+
+pe_ols;pe_step;pe_ridge;pe_lasso;pe_null
+

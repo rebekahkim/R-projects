@@ -1,0 +1,149 @@
+###################### Polynomial and nonparametric regression ######################
+
+### load voltage drop data (textbook, p.232)
+
+# need to install package 'RSADBE' in advance
+#install.packages("RSADBE")
+
+library(RSADBE)	
+
+data(VD)
+class(VD)
+
+X<-VD[,1]
+
+# add noise to original data
+
+set.seed(2)
+Y<-VD[,2]+rnorm(length(X),0,0.8)
+
+
+### polynomial regression
+
+# cubic spline basis function
+
+cubic_basis<-function(x,tau){
+  # x: N dimensional vector for evaluation points
+  # tau: K dimensional vector of knot points
+  
+  tau<-sort(tau)
+  
+  N<-length(x)
+  K<-length(tau)
+  
+  basis_1<-matrix(nrow=N,ncol=3)
+  for(l in 1:3){
+    basis_1[,l]<-x^l
+  }
+  colnames(basis_1)<-c('linear','quadratic','cubic')
+  
+  basis_2<-matrix(nrow=N,ncol=K)
+  for(k in 1:K){
+    x_tau<-x-tau[k]
+    basis_2[,k]<-(x_tau^3)*(x_tau>0)
+  }
+  colnames(basis_2)<-1:K
+  
+  basis<-cbind(basis_1,basis_2)
+  
+  return(basis)
+}
+
+# fixed 2 knots in advance (textbook, p.232)
+
+tau0<-c(6.5,13)
+X0<-cubic_basis(X,tau0)
+fit_cub<-lm(Y~X0)
+summary(fit_cub)
+
+# arbitrary knot selection
+
+tau1<-10
+tau2<-seq(3,18,3)
+tau3<-runif(10,0,20)
+
+X1<-cubic_basis(X,tau1)
+X2<-cubic_basis(X,tau2)
+X3<-cubic_basis(X,tau3)
+
+fit1<-lm(Y~X1)
+fit2<-lm(Y~X2)
+fit3<-lm(Y~X3)
+
+summary(fit1)
+summary(fit2)
+summary(fit3)
+
+windows()
+par(mfrow=c(2,2))
+
+plot(X,Y)
+points(X,fit_cub$fitted,type='l',col=1,lwd=2)
+
+plot(X,Y)
+points(X,fit_cub$fitted,type='l',col=1,lwd=2)
+points(X,fit1$fitted,type='l',col=2,lwd=2)
+
+plot(X,Y)
+points(X,fit_cub$fitted,type='l',col=1,lwd=2)
+points(X,fit2$fitted,type='l',col=3,lwd=2)
+
+plot(X,Y)
+points(X,fit_cub$fitted,type='l',col=1,lwd=2)
+points(X,fit3$fitted,type='l',col=4,lwd=2)
+
+
+
+### Nonparametric regression (kernel smoothing)
+
+x0<-seq(0,20,length.out=101)
+fit_np1<-ksmooth(X,Y,kernel='normal',bandwidth=5,x.points=x0)
+fit_np2<-ksmooth(X,Y,kernel='normal',bandwidth=2,x.points=x0)
+fit_np3<-ksmooth(X,Y,kernel='normal',bandwidth=1,x.points=x0)
+
+windows()
+plot(X,Y)
+points(x0,fit_np1$y,type='l',col=2,lwd=2)
+points(x0,fit_np2$y,type='l',col=3,lwd=2)
+points(x0,fit_np3$y,type='l',col=4,lwd=2)
+
+tmp<-seq(1,50,1)[-1]
+h<-log(tmp)
+
+LOOCV<-c()
+for(j in 1:length(h)){
+  fit_np<-c()
+  for(i in 1:length(Y)){
+    X_tmp<-X[-i]
+    Y_tmp<-Y[-i]
+    
+    fit_np[i]<-ksmooth(X_tmp,Y_tmp,kernel='normal',bandwidth=h[j],x.points=X[i])$y
+  }
+  LOOCV[j]<-sum((Y-fit_np)^2)
+}
+
+ind<-which(LOOCV==min(LOOCV))
+h_cv<-h[ind]
+
+windows()
+plot(h,LOOCV,xlab='bandwidth',ylab='leave-one-out cross validation')
+abline(v=h_cv,col=8)
+
+fit_np0<-ksmooth(X,Y,kernel='normal',bandwidth=h_cv,x.points=x0)
+
+windows()
+plot(X,Y)
+points(x0,fit_np0$y,type='l',col=1,lwd=3)
+points(x0,fit_np1$y,type='l',col=2,lwd=1)
+points(x0,fit_np2$y,type='l',col=3,lwd=1)
+points(x0,fit_np3$y,type='l',col=4,lwd=1)
+
+
+windows()
+plot(X,Y)
+points(fit_np0,type='l',col=2,lwd=3)
+points(X,fit_cub$fitted,type='l',col=4,lwd=3)
+
+
+
+

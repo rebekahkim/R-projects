@@ -1,0 +1,339 @@
+###################### Indicator variables ######################
+
+### simulation data construction
+set.seed(1)
+n<-150
+x<-runif(n,0,1)
+a<-sample(c(2,4),n,replace=T,prob=c(0.4,0.6))
+
+y<-c()
+for(i in 1:n){
+  if(a[i]==2){
+    y[i]<-1+2*x[i]+rnorm(1,0,0.6)
+  }else{
+    y[i]<-1.5+2.5*x[i]+rnorm(1,0,0.6)
+  }
+}
+
+# marginal regression in x only
+fit0<-lm(y~x)
+summary(fit0)
+
+windows()
+plot(x,y)
+abline(coef=fit0$coef)
+
+# ANCOVA with main and interaction effects
+z<-as.factor(a)
+fit1<-lm(y~x+z)
+fit2<-lm(y~x+z+x*z)
+
+summary(fit1)
+summary(fit2)
+
+coef1<-fit1$coef
+cf11<-c(coef1[1],coef1[2])
+cf12<-c(coef1[1]+coef1[3],coef1[2])
+
+coef2<-fit2$coef
+cf21<-c(coef2[1],coef2[2])
+cf22<-c(coef2[1]+coef2[3],coef2[2]+coef2[4])
+
+
+windows()
+plot(x,y,col=a,pch=a,cex=0.7)
+abline(coef=cf11,col=2,lwd=2,lty=2)
+abline(coef=cf12,col=4,lwd=2,lty=2)
+abline(coef=cf21,col=2,lwd=1,lty=1)
+abline(coef=cf22,col=4,lwd=1,lty=1)
+
+# factor and indicator variable...
+set.seed(54)
+n<-150
+x<-runif(n,0,1)
+a<-sample(c(2,3,4),n,replace=T,prob=c(0.2,0.3,0.5))
+
+y<-c()
+for(i in 1:n){
+  if(a[i]==2){
+    y[i]<-1+2*x[i]+rnorm(1,0,0.6)
+  } else if(a[i]==3) {
+    y[i]<-1.5+2.5*x[i]+rnorm(1,0,0.6)
+  } else {
+    y[i]<-2 + 3*x[i] + rnorm(1,0,0.6)
+  }
+}
+z<-as.factor(a)
+
+fit.first<-lm(y~x+z)
+summary(fit.first)
+
+za = c()
+for(i in 1:n) {
+  if(a[i]==2) {
+    za[i] = 0
+  } else if(a[i]==3) {
+    za[i] = 1
+  } else {
+    za[i] = 0
+  }
+}
+
+zb = c()
+for(i in 1:n) {
+  if(a[i]==2) {
+    zb[i] = 0
+  } else if(a[i]==3) {
+    zb[i] = 0
+  } else {
+    zb[i] = 1
+  }
+}
+fit.second<-lm(y~x+za+zb)
+summary(fit.second)
+
+###################### Bivariate normal density and PCA ######################
+
+### need to install package 'mvtnorm' in advance
+library(mvtnorm)
+
+mu<-rep(0,2)
+s11<-2
+s22<-1.2
+rho<--0.4
+Sigma<-matrix(c(s11,rho*sqrt(s11*s22),rho*sqrt(s11*s22),s22),nrow=2,ncol=2)
+det(Sigma)
+
+x1<-seq(-4,4,length.out=31)
+x2<-seq(-4,4,length.out=31)
+
+
+### bivariate normal density
+f_x<-matrix(nrow=length(x1),ncol=length(x2))
+for(i in 1:length(x1)){
+  for(j in 1:length(x2)){
+    x<-c(x1[i],x2[j])
+    f_x[i,j]<-dmvnorm(x,mu,Sigma)
+  }
+}
+
+windows()
+par(mfrow=c(2,2))
+persp(x1,x2,f_x,theta=0,phi=5,ticktype='simple')
+persp(x1,x2,f_x,theta=90,phi=5,ticktype='simple')
+persp(x1,x2,f_x,theta=-30,phi=30,ticktype='simple')
+persp(x1,x2,f_x,theta=60,phi=30,ticktype='simple')
+
+
+### bivariate normal random vector X ~ N(mu,Sigma)
+set.seed(1)
+X<-rmvnorm(400,mu,Sigma)
+
+
+### eigenvalue decomposition of cov(X)
+
+V<-eigen(Sigma)$vector
+D<-eigen(Sigma)$value
+
+slope1<-V[2,1]/V[1,1]
+slope2<-V[2,2]/V[1,2]
+
+
+### principal component score (PC score)
+Y<-X%*%V
+
+windows()
+plot(X,cex=0.6,pch=4,xlim=c(-4.5,4.5),ylim=c(-4.5,4.5),
+     xlab='x1',ylab='x2')
+points(Y[,1]*V[1,1],Y[,1]*V[2,1],cex=0.7,col=2)
+points(Y[,2]*V[1,2],Y[,2]*V[2,2],cex=0.7,col=4)
+abline(coef=c(0,slope1),col=2,lty=2)
+abline(coef=c(0,slope2),col=4,lty=2)
+abline(h=0,v=0,col=8)
+
+
+### scaling problem
+t11<-4*s11
+Sigma1<-matrix(c(t11,rho*sqrt(t11*s22),rho*sqrt(t11*s22),s22),nrow=2,ncol=2)
+det(Sigma1)
+
+
+### bivariate normal random vector Z ~ N(mu,Sigma1)
+set.seed(1)
+Z<-rmvnorm(400,mu,Sigma1)
+
+
+### eigenvalue decomposition of cov(Z)
+V_Z<-eigen(Sigma1)$vector
+D_Z<-eigen(Sigma1)$value
+
+slope1_Z<-V_Z[2,1]/V_Z[1,1]
+slope2_Z<-V_Z[2,2]/V_Z[1,2]
+
+
+### principal component score (PC score)
+Y_Z<-Z%*%V_Z
+
+windows()
+plot(Z,cex=0.6,pch=4,xlim=c(-9,9),ylim=c(-9,9),
+     xlab='z1',ylab='x2')
+points(Y_Z[,1]*V_Z[1,1],Y_Z[,1]*V_Z[2,1],cex=0.7,col=2)
+points(Y_Z[,2]*V_Z[1,2],Y_Z[,2]*V_Z[2,2],cex=0.7,col=4)
+abline(coef=c(0,slope1_Z),col=2,lty=2)
+abline(coef=c(0,slope2_Z),col=4,lty=2)
+abline(h=0,v=0,col=8)
+
+
+### PCA for correlation matrix R
+R<-matrix(c(1,rho,rho,1),nrow=2,ncol=2)
+
+V_R<-eigen(R)$vector
+D_R<-eigen(R)$value
+
+slope1_R<-V_R[2,1]/V_R[1,1]
+slope2_R<-V_R[2,2]/V_R[1,2]
+
+X_std<-scale(X,center=T,scale=T)
+Y_R<-X_std%*%V_R
+
+windows()
+plot(X_std,cex=0.6,pch=4,xlim=c(-4.2,4.2),ylim=c(-4.2,4.2),
+     xlab='normalized x1',ylab='normalize x2')
+points(Y_R[,1]*V_R[1,1],Y_R[,1]*V_R[2,1],cex=0.7,col=2)
+points(Y_R[,2]*V_R[1,2],Y_R[,2]*V_R[2,2],cex=0.7,col=4)
+abline(coef=c(0,slope1_R),col=2,lty=2)
+abline(coef=c(0,slope2_R),col=4,lty=2)
+abline(h=0,v=0,col=8)
+
+
+###################### Ridge regression ######################
+
+### data loading: Delivery time data (Example 4.1 in the textbook)
+library(robustbase)
+
+X0<-delivery
+colnames(X0)<-c('Cases','Distance','Time')
+plot(X0)
+
+Y<-X0[-9,3]
+X<-as.matrix(X0[-9,-3])
+
+
+### multiple linear regression and ridge regression
+# need to load the basic library 'MASS'
+library(MASS)
+
+ridge_cv<-function(X,Y,L){
+  
+  Y_pred<-c()
+  
+  for(i in 1:length(Y)){
+    Y_cv<-Y[-i]
+    X_cv<-X[-i,]
+    
+    m_Y<-mean(Y_cv)
+    m_X<-apply(X_cv,2,'mean')
+    
+    X_cv<-scale(X[-i,],center=T,scale=F)
+    
+    fit_cv<-lm.ridge(Y_cv~0+X_cv,lambda=L)
+    beta_R<-fit_cv$coef/fit_cv$scale
+    
+    Y_pred[i]<-m_Y+t(X[i,]-m_X)%*%beta_R
+  }
+  
+  err<-Y-Y_pred
+  
+  return(sum(err^2))
+}
+
+PE<-c()
+L<-seq(0,1.5,0.05)
+for(i in 1:length(L)){
+  PE[i]<-ridge_cv(X,Y,L[i])
+}
+
+windows()
+plot(log(L),PE,xlab=quote(log(lambda)),ylab='LOOCV PE')
+ind<-which(PE==min(PE))
+abline(v=log(L[ind]),col=8)
+
+L0<-L[ind]
+
+m_X<-apply(X,2,'mean')
+X_c<-scale(X,center=T,scale=F)
+
+fit_R<-lm.ridge(Y~0+X_c,lambda=L0)
+
+fit<-lm(Y~X_c)
+
+beta_ols<-fit$coef[-1]
+beta_R<-fit_R$coef/fit_R$scale
+
+sum(beta_ols^2)
+sum(beta_R^2)
+
+
+### solution path for ridge regression coefficient estimator
+L1<-seq(0,100,0.5)
+beta_all<-matrix(nrow=length(L1),ncol=2)
+for(i in 1:length(L1)){
+  fit_tmp<-lm.ridge(Y~0+X_c,lambda=L1[i])
+  beta_all[i,]<-fit_tmp$coef/fit_tmp$scale
+}
+
+windows()
+par(mfrow=c(2,1))
+plot(L1,beta_all[,1],col=2,type='l',xlab=quote(lambda),ylab=quote(beta[R*','*1]))
+plot(L1,beta_all[,2],col=4,type='l',xlab=quote(lambda),ylab=quote(beta[R*','*2]))
+
+
+###################### principal component regression (PCR) ######################
+
+X_std<-scale(X,center=T,scale=T)
+
+R<-t(X_std)%*%X_std
+
+V<-eigen(R)$vec
+D<-eigen(R)$val
+
+Z<-X_std%*%V
+
+slope1<-V[2,1]/V[1,1]
+slope2<-V[2,2]/V[1,2]
+
+windows()
+plot(X_std,cex=0.6,pch=4,xlim=c(-3.5,3.5),ylim=c(-3.5,3.5),
+     xlab='scaled x1',ylab='sclaed x2')
+points(Z[,1]*V[1,1],Z[,1]*V[2,1],cex=0.7,col=2)
+points(Z[,2]*V[1,2],Z[,2]*V[2,2],cex=0.7,col=4)
+abline(coef=c(0,slope1),col=2,lty=2)
+abline(coef=c(0,slope2),col=4,lty=2)
+abline(h=0,v=0,col=8)
+
+D[1]/sum(D)
+
+fit_PC<-lm(Y~Z[,1])
+
+m_Y<-mean(Y)
+
+Y_hat_ols<-fit$fitted
+Y_hat_R<-m_Y+t(t(X)-m_X)%*%beta_R
+Y_hat_PC<-fit_PC$fitted
+
+resid_ols<-Y-Y_hat_ols
+resid_R<-Y-Y_hat_R
+resid_PC<-Y-Y_hat_PC
+
+windows()
+plot(Y_hat_ols,resid_ols,cex=0.8,pch=4,ylim=c(-7,7),
+     xlab=quote(hat(Y)[OLS]),ylab='residual')
+points(Y_hat_ols,resid_R,col=2,cex=0.8)
+points(Y_hat_ols,resid_PC,col=4,cex=0.8,pch=2)
+legend('bottomright',c('OLS','ridge','PCR'),pch=c(4,1,2),col=c(1,2,4),horiz=T)
+abline(h=0,col=8)
+
+
+sum(resid_ols^2)
+sum(resid_R^2)
+sum(resid_PC^2)

@@ -1,0 +1,95 @@
+---
+title: "Applied Linear Regression Analaysis HW1"
+author: "Rebekah Kim"
+date: "September 20, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+
+i. Are the regression assumptions satisfied in this application?
+
+ii. Compute the sample correlation coe!cient of the above data set. Identify the strength
+of the linear relationship.
+
+iii. Compute the coe!cient of determination for this application. Interpret this quantity
+relative to the problem statement.
+
+iv. Find the line of best fit (LOBF) and the mean square error (MSE).
+
+v. Interpret the estimated slope beta hat 1 in terms of the application.
+
+vi. Predict the true average fungal growth when laetisaric acid concentration is fixed at 15
+[µG/ml].
+
+```{r}
+
+
+```
+## Problem 2
+
+i. Use R to find the line of best fit for this application.
+ii. Use R to find the correlation coe!cient for this application.
+iii. Use R to create a scatter plot with the line of best fit. Make the line of best fit red.
+iv. After looking at the scatter plot, do you think this line will do a good job predicting
+alcohol consumption for a fixed level of tobacco usage?
+
+## Problem 3
+Consider a data set (x1, y1),(x2, y2),...,(xn, yn) and suppose yi = 2xi + 1 for i = 1, 2,...,n.
+Show that the sample correlation coefficient r is equal to 1.
+
+## Problem 4
+
+i. Run an exploratory analysis on the above data set. This includes, finding descriptive
+statistics of both data sets, construct histograms of the individual data sets, construct
+a comparative box plot. Does the comparative box plot support the research question?
+Make sure to add titles and label all axes on the plots.
+
+```{r}
+
+#datasets
+control <- c(808,757,773,937,726,788,806,792,751,765,853,655,626,721,630,722,683,709,718,812,703,791,586,864,737,701,799,844,639,705,822,935,842,827,784,838,795,823,791,819) 
+cell <- c(909,712,805,852,859,781,841,822,740,910,900,912,863,785,863,809,927,847,918,810,788,929,798,863,981,842,1021,827,876,736,640,851,787,703,942,758,843,781,969,872)
+
+#Exploratory Analysis
+#Descriptive Stat
+summary(control)
+mean(control)
+var(control)
+
+summary(cell)
+mean(cell)
+var(cell)
+#Histogram
+#Box plot
+
+
+#Stacked data
+y <- c(control,cell)
+
+#Sample sizes
+m <- length(control)
+n <- length(cell)
+```
+
+ii. Are the assumptions satisfied to perform the relevant hypothesis test? To check this,
+create QQ-plots of each data set and the stacked data set.
+
+iii. Run a two-sample t-test on this data set. Include all relevant steps to receive full credit.
+Note: You do not have to work out any formulas by hand. You can use R to find the
+test statistic and p-value.
+
+iv. Run a pooled two-sample t-test on this data set. Include all relevant steps to receive
+full credit. Note: Again, you do not have to work out any formulas by hand. Also,
+make sure to check that the variances do not statistically di↵er per group.
+
+v. What type of error (Type I or Type II) did we maybe commit? Explain your reasoning
+in one or two sentences.
+
+vi. Should we use the pooled t-test or regular t-test for this application? Explain your
+reasoning in one or two sentences.

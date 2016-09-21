@@ -1,5 +1,5 @@
 ---
-title: "STAT UN2103 Section 001 Assignment #1"
+title: 'STAT UN2103 Section 001 Assignment #1'
 author: "Rebekah Kim"
 date: "September 20, 2016"
 output: html_document
@@ -19,8 +19,7 @@ i. The linear regression assumes
   Glancing at the fungus growth vs. laetisaric acid graph, there seems to be a linear relationship between the two variables; Indeed the variance of the error residuals ($e_i$) seems constant (the data points have similar lengths of deviation from the regression line). Also, the Q-Q plot further shows that it is plausible to assume that $\epsilon_i$ is normal with constant variance ($\epsilon_i \stackrel{iid}\sim N(0, \sigma^2)$).
 
 
-ii.
-$\hat{\beta}_1 = \dfrac{S_{xy}}{S_{xx}}$
+ii.$\hat{\beta}_1 = \dfrac{S_{xy}}{S_{xx}}$
 
 $S_{xy} = \sum\limits_{i=1}^n (x_i-\bar{x})(y_i-\bar{y}) = -927.75$
 
@@ -42,9 +41,7 @@ $r^2 = 1 - \dfrac{SSE}{SST} = 1- 16.78/677.35 = 0.975226988$
 $r^2$ is close to 0.98, meaning 98% of variation in fungus growth is explained by the laetisaric acid concentration. The acid compound probably effectively controls the fungus growth.
 
 
-iv.
-
-line of best fit ($\hat{y}$) = $\hat{\beta}_0 + \hat{\beta}_1x$
+iv. line of best fit ($\hat{y}$) = $\hat{\beta}_0 + \hat{\beta}_1x$
 
 $\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x}$ = 23.64 - (-0.712010744)*11.50 = 31.8281236
 
@@ -54,16 +51,11 @@ MSE = $\dfrac{SSE}{n-2} = \dfrac{16.78}{12-2}$ = 1.678
 
 
 
-v.
-
-For every 1 $\mu$ G/mL increase in laetisaric acid concentration, the average fungus growth (radial measurement of the colony) decrease by 0.7120107mm
+v. For every 1 $\mu$ G/mL increase in laetisaric acid concentration, the average fungus growth (radial measurement of the colony) decrease by 0.7120107mm
 
 
 
-vi. Predict the true average fungal growth when laetisaric acid concentration is fixed at 15
-[µG/ml].
-
-31.8281236 -0.712010744*15 = 21.14796 mm of fungal growth
+vi. 31.8281236 -0.712010744*15 = 21.14796 mm of fungal growth
 
 ## Problem 2
 i. Use R to find the line of best fit for this application.
@@ -98,7 +90,6 @@ alcohol consumption for a fixed level of tobacco usage?
 ```{r}
 summary(model)
 
-summary(model)$r.squared
 ```
 
 No this line will probably not do a good job because there is weak correlation (0.2236), low R-squared value (0.05), and a high p-value (0.5087).
@@ -108,18 +99,16 @@ Consider a data set (x1, y1),(x2, y2),...,(xn, yn) and suppose yi = 2xi + 1 for 
 Show that the sample correlation coefficient r is equal to 1.
 
 ```{r}
-x <- 1:1000
+x <- 1:1000000
 y <- 2 * x + 1
 cor(x, y)
 ```
 
+It is the property of the sample correlation that r = 1 or -1 iff y = ax + b for some real number a, b with a != 0. Here, a = 2, b = 1.
+
 ## Problem 4
 
-i. Run an exploratory analysis on the above data set. This includes, finding descriptive
-statistics of both data sets, construct histograms of the individual data sets, construct
-a comparative box plot. Does the comparative box plot support the research question?
-Make sure to add titles and label all axes on the plots.
-
+i.
 ```{r}
 
 #datasets
@@ -129,11 +118,9 @@ cell <- c(909,712,805,852,859,781,841,822,740,910,900,912,863,785,863,809,927,84
 #Exploratory Analysis
 #Descriptive Statistics on control and cellphone datasets
 summary(control)
-mean(control)
 var(control)
 
 summary(cell)
-mean(cell)
 var(cell)
 
 #Histogram
@@ -143,30 +130,75 @@ hist(cell)
 #Stacked data
 y <- c(control,cell)
 
-#Box plot
-boxplot(y~c(rep("control", 40), rep("cell", 40)), main="Box plot", ylab = "reaction time")
-boxplot (control, cell, main="Box plot", ylab = "Reaction time")
-
-
-
 #Sample sizes
 m <- length(control)
 n <- length(cell)
+
+#Box plot
+
+boxplot(y~c(rep("control", m), rep("cell phone", n)), main="Box plot", ylab = "Reaction time")
+
 ```
 
-ii. Are the assumptions satisfied to perform the relevant hypothesis test? To check this,
-create QQ-plots of each data set and the stacked data set.
+The boxplot seems to support the research question that cell phone users have a longer reaction time than the control group, as the median and the mean of the control group reaction time is below that of the first quartile of the cell phone group.
 
-iii. Run a two-sample t-test on this data set. Include all relevant steps to receive full credit.
-Note: You do not have to work out any formulas by hand. You can use R to find the
-test statistic and p-value.
+ii. 
 
-iv. Run a pooled two-sample t-test on this data set. Include all relevant steps to receive
-full credit. Note: Again, you do not have to work out any formulas by hand. Also,
-make sure to check that the variances do not statistically di↵er per group.
+```{r}
 
-v. What type of error (Type I or Type II) did we maybe commit? Explain your reasoning
-in one or two sentences.
+#Assessing normality 
+h <- hist(y,main="Histogram (All Reaction time data)")
+x <- 50:150/10 
 
-vi. Should we use the pooled t-test or regular t-test for this application? Explain your
-reasoning in one or two sentences.
+# set graphics window to plot side by side
+par(mfrow=c(2,2))
+
+qqnorm((cell-mean(cell))/sd(cell),main="Normal QQ Plot (Cell phone)")
+abline(a=0,b=1,lty=2)
+qqnorm((control-mean(control))/sd(control),main="Normal QQ Plot (Control)")
+abline(a=0,b=1,lty=2)
+qqnorm((y-mean(y))/sd(y),main="Normal QQ Plot (All Reaction time data)")
+abline(a=0,b=1,lty=2)
+plot(h,freq=F,main="Histogram (All Reaction time data)")
+curve(dnorm(x, mean=mean(y), sd=sd(y)), add=TRUE,col=2)
+```
+
+In order to perform the relevant hypothesis test, we need to make sure that the distribution of the data sets show normality. Upon observing the graphs, it is plausible to assume that normality of the control, cell phone, and combined data distributions, since the data points closely align with the 45 degree line in the QQ-plots and the histogram closely exhibits normal distribution. 
+
+
+iii. 
+
+```{r}
+# The null hypothesis is mean of the control = mean of cell or mean_control - mean_cell = 0
+# The alternative hpothesis is mean of the control < mean of cell or mean_control - mean_cell < 0
+
+#two sample t-test for means
+t.test(control, cell, alternative = "less")
+```
+
+p-value =  3.358e-05 < 0.05. Therefore we can reject $H_0$
+
+
+iv. 
+
+```{r}
+
+#check variance do not statistically differ per group
+# H_0: variance of control = variance of cell, H_A: variance of control != variance of cell
+library(car)
+leveneTest(y~factor(c(rep("control", m), rep("cell phone", n))))
+
+#p-value 0.9318 > 0.1 therefore, we fail to reject H_0
+#It is reasonable to assume equal variances per group
+
+# pooled two sample T-test
+t.test( control,cell, alternative = "less", var.equal=TRUE)
+```
+
+p-value = 3.358e-05 < 0.05. Therefore we can reject $H_0$
+
+
+v. We may have committed Type I error because we may have rejected the null hypothesis (mean of the control = mean of cell) when actually the null hypothesis is true.
+
+
+vi. We should use the pooled t-test. It meets the requirement: Levene's test suggested that it is reasonable to assume equal variances per group. Using the pooled t-test, we can have higher precision and can translate it to regression. 

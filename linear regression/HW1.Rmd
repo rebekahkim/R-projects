@@ -1,5 +1,5 @@
 ---
-title: "Applied Linear Regression Analaysis HW1"
+title: "STAT UN2103 Section 001 Assignment #1"
 author: "Rebekah Kim"
 date: "September 20, 2016"
 output: html_document
@@ -11,37 +11,107 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Problem 1
 
+i. The linear regression assumes 
+  $Y_i = \beta_0 + \beta_1X_1 + \epsilon_i$, i = 1, 2, ... n
+    
+    where $\epsilon_i$ is independent and identifically distributed N(0, $\sigma^2$).
+    
+  Glancing at the fungus growth vs. laetisaric acid graph, there seems to be a linear relationship between the two variables; Indeed the variance of the error residuals ($e_i$) seems constant (the data points have similar lengths of deviation from the regression line). Also, the Q-Q plot further shows that it is plausible to assume that $\epsilon_i$ is normal with constant variance ($\epsilon_i \stackrel{iid}\sim N(0, \sigma^2)$).
 
-i. Are the regression assumptions satisfied in this application?
 
-ii. Compute the sample correlation coe!cient of the above data set. Identify the strength
-of the linear relationship.
+ii.
+$\hat{\beta}_1 = \dfrac{S_{xy}}{S_{xx}}$
 
-iii. Compute the coe!cient of determination for this application. Interpret this quantity
-relative to the problem statement.
+$S_{xy} = \sum\limits_{i=1}^n (x_i-\bar{x})(y_i-\bar{y}) = -927.75$
 
-iv. Find the line of best fit (LOBF) and the mean square error (MSE).
+$S_{xx} = \sum\limits_{i=1}^n (x_i-\bar{x})^2 = 1303$
 
-v. Interpret the estimated slope beta hat 1 in terms of the application.
+$\hat{\beta}_1 = \dfrac{-927.75}{1303} = -0.712010744$
+
+There is a relatively strong, negative (-0.71) linear relationship.
+
+
+iii. coefficient of determination = $r^2 = 1 - \dfrac{SSE}{SST}$
+
+$SSE = \sum\limits_{i=1}^n (y-\hat{y})^2 = 16.78$
+
+$SST = S_{yy} = \sum\limits_{i=1}^n (y-\bar{y})^2 = 677.35$
+
+$r^2 = 1 - \dfrac{SSE}{SST} = 1- 16.78/677.35 = 0.975226988$
+
+$r^2$ is close to 0.98, meaning 98% of variation in fungus growth is explained by the laetisaric acid concentration. The acid compound probably effectively controls the fungus growth.
+
+
+iv.
+
+line of best fit ($\hat{y}$) = $\hat{\beta}_0 + \hat{\beta}_1x$
+
+$\hat{\beta}_0 = \bar{y} - \hat{\beta}_1\bar{x}$ = 23.64 - (-0.712010744)*11.50 = 31.8281236
+
+$\hat{y} = \hat{\beta}_0 + \hat{\beta}_1x$ =  31.8281236 -0.712010744x
+
+MSE = $\dfrac{SSE}{n-2} = \dfrac{16.78}{12-2}$ = 1.678
+
+
+
+v.
+
+For every 1 $\mu$ G/mL increase in laetisaric acid concentration, the average fungus growth (radial measurement of the colony) decrease by 0.7120107mm
+
+
 
 vi. Predict the true average fungal growth when laetisaric acid concentration is fixed at 15
 [µG/ml].
 
-```{r}
+31.8281236 -0.712010744*15 = 21.14796 mm of fungal growth
 
-
-```
 ## Problem 2
-
 i. Use R to find the line of best fit for this application.
-ii. Use R to find the correlation coe!cient for this application.
+```{r}
+#dataset
+alcohol <- c(6.47, 6.13, 6.19, 4.89, 5.63, 4.52, 5.89, 4.79, 5.27, 6.08, 4.02)
+tobacco <- c(4.03, 3.76, 3.77, 3.34, 3.47, 2.92, 3.20, 2.71, 3.53, 4.51, 4.56)
+
+#linear model
+model = lm(alcohol~tobacco)
+
+#find beta 1 (slope) and beta 0 (intercept) of line of best fit
+model
+```
+line of best fit ($\hat{y}$) = $\hat{\beta}_0 + \hat{\beta}_1x$
+  = 4.3512 + 0.3019x
+
+
+ii. Use R to find the correlation coefficient for this application.
+```{r}
+cor(tobacco, alcohol)
+```
+
 iii. Use R to create a scatter plot with the line of best fit. Make the line of best fit red.
+```{r}
+plot(tobacco, alcohol, main="Alcohol vs Tobacco expenditure")
+abline(model, col=2)
+```
+
 iv. After looking at the scatter plot, do you think this line will do a good job predicting
 alcohol consumption for a fixed level of tobacco usage?
+```{r}
+summary(model)
+
+summary(model)$r.squared
+```
+
+No this line will probably not do a good job because there is weak correlation (0.2236), low R-squared value (0.05), and a high p-value (0.5087).
 
 ## Problem 3
 Consider a data set (x1, y1),(x2, y2),...,(xn, yn) and suppose yi = 2xi + 1 for i = 1, 2,...,n.
 Show that the sample correlation coefficient r is equal to 1.
+
+```{r}
+x <- 1:1000
+y <- 2 * x + 1
+cor(x, y)
+```
 
 ## Problem 4
 
@@ -57,7 +127,7 @@ control <- c(808,757,773,937,726,788,806,792,751,765,853,655,626,721,630,722,683
 cell <- c(909,712,805,852,859,781,841,822,740,910,900,912,863,785,863,809,927,847,918,810,788,929,798,863,981,842,1021,827,876,736,640,851,787,703,942,758,843,781,969,872)
 
 #Exploratory Analysis
-#Descriptive Stat
+#Descriptive Statistics on control and cellphone datasets
 summary(control)
 mean(control)
 var(control)
@@ -65,12 +135,19 @@ var(control)
 summary(cell)
 mean(cell)
 var(cell)
-#Histogram
-#Box plot
 
+#Histogram
+hist(control)
+hist(cell)
 
 #Stacked data
 y <- c(control,cell)
+
+#Box plot
+boxplot(y~c(rep("control", 40), rep("cell", 40)), main="Box plot", ylab = "reaction time")
+boxplot (control, cell, main="Box plot", ylab = "Reaction time")
+
+
 
 #Sample sizes
 m <- length(control)

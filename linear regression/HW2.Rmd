@@ -1,0 +1,136 @@
+---
+title: "STAT UN2103 Section 1 HW2"
+author: "Rebekah Kim"
+date: "October 5, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Problem 1
+i. T-test approach
+Test     $H_0: \beta_1 = 0, H_A: \beta_1 \neq 0$ 
+
+$t_{calc} = \dfrac{\hat{\beta_1} - \beta_1}{\sqrt{MSE/S_{xx}}} = \dfrac{\hat{\beta_1} - 0}{\sqrt{(SSE/n-2)/S_{xx}}}$
+
+
+$\hat{\beta}_1 = \dfrac{S_{xy}}{S_{xx}}$
+
+$S_{xy} = \sum\limits_{i=1}^n (x_i-\bar{x})(y_i-\bar{y}) = -927.75$
+
+$S_{xx} = \sum\limits_{i=1}^n (x_i-\bar{x})^2 = 1303$
+
+$\hat{\beta}_1 = \dfrac{-927.75}{1303} = -0.712010744$
+
+MSE = SSE/(n-2)
+
+$SSE = \sum\limits_{i=1}^n (y-\hat{y})^2 = 16.78$
+
+MSE = 1.678
+
+$t_{calc} = \dfrac{-0.712010744 - 0}{\sqrt{1.678/1303}} = -19.84096$
+
+p-value for t-score -19.84 and df 10 is less than 0.00001 < 0.05
+
+Confidence Interval:
+$\beta \pm t_{\alpha/2, n-2}\sqrt{MSE/S_{xx}} = -0.712010744 \pm 2.228\sqrt{1.678/1303}--> (-0.635,-0.795)$
+
+We reject the null hypothesis because p-value is less than 0.05 and 0 is not in the confidence interval.
+There is a statistically significant slope in this study indicating that the concentration of laetisaric acid and fungus growth are statistically related.
+
+ii. F-test approach
+
+Test     $H_0: \beta_1 = 0, H_A: \beta_1 \neq 0$ 
+
+$f_{calc} = \dfrac{SSR}{MSE}$
+
+MSE = 1.678
+SSR = SST - SSE = 677.35 - 16.78 = 660.57
+$f_{calc} = 393.665$
+
+ANOVA table
+
+            Df       Sum Sq     Mean Sq  F value 
+-------     ------ ----------   -------  -------
+x           1        660.57     660.57    393.67
+Residuals   10       16.78      1.678
+  Total     11      677.35          
+
+p-value 
+
+We reject the null hypothesis because the p-value is less than 0.05.
+
+#### Problem 3
+b.
+```{r}
+x <- c(4, 8, 6, 10, 8, 6, 5, 9, 1, 2)
+y <- c(8.70, 17.11, 12.43, 19.47, 15.16, 11.32, 10.28, 16.64, 1.61, 4.49)
+
+# null hypothesis: beta = 2
+null_x <- 2*x
+
+# t-test
+#t.test(x,y)
+
+# origin model
+#model <- lm(y~null_x - 1)x
+model <- lm(y~x, offset = 2.00*x)
+summary(model)
+```
+The p-value is >0.05, therefore we fail to reject the null hypothesis (beta = 2) 
+
+c.
+```{r}
+f_procedure <- lm(y~x)
+summary(f_procedure)
+```
+The ____ fits better
+
+
+#### Problem 4
+```{r}
+
+Husband <- c(186,180,160,186,163,172,192,170,174,191,182,178,181,168,162,188,168,183,188,166,180,176,185,169,182,162,169,176,180,157,170,186,180,188,153,179,175,165,156,185,172,166,179,181,176,170,165,183,162,192,185,163,185,170,176,176,160,167,157,180,172,184,185,165,181,170,161,188,181,156,161,152,179,170,170,165,165,169,171,192,176,168,169,184,171,161,185,184,179,184,175,173,164,181,187,181)
+Wife <-  c(175,168,154,166,162,152,179,163,172,170,170,147,165,162,154,166,167,174,173,164,163,163,171,161,167,160,165,167,175,157,172,181,166,181,148,169,170,157,162,174,168,162,159,155,171,159,164,175,156,180,167,157,167,157,168,167,145,156,153,162,156,174,160,152,175,169,149,176,165,143,158,141,160,149,160,148,154,171,165,175,161,162,162,176,160,158,175,174,168,177,158,161,146,168,178,170) 
+
+
+```
+
+i. Choosing which variable will be a response variable depends on what question you want to answer. If you would 
+
+ii. 
+null hypothesis beta 
+```{r}
+heights <- lm(Husband~Wife)
+summary(heights)
+```
+
+iii.
+
+#### Problem 5
+i.
+```{r}
+H <- c(1.2, .9, .7, 1.0, 1.7, 1.7, 1.1, .9, 1.7,
+1.9, 1.3, 2.1, 1.6, 1.8, 1.4, 1.3, 1.9, 1.6,
+.8, 2.0, 1.7, 1.6, 2.3, 2.0)
+P <- c(1.6, 1.5, 1.1, 2.1, 1.5, 1.3, 1.0, 2.6)
+
+#response
+y <- c(H, P)
+
+#dummy var
+x <- c(rep(1,24))
+
+model(lm())
+```
+
+ii.
+
+
+iii.
+
+
+
+

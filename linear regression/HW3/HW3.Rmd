@@ -1,0 +1,21 @@
+---
+title: "STAT UN 2103 Homework 3"
+author: "Rebekah Kim"
+date: "October 21, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Problem 1
+
+
+#### Problem 2
+
+#### Problem 3
+
+#### Problem 4
+
+#### Problem 5

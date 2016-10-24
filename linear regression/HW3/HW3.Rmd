@@ -9,13 +9,114 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### Problem 1
-
-
-#### Problem 2
+#### Problem 1, 2 handwritten (back)
 
 #### Problem 3
 
+```{r}
+estate_data <- read.table("HW3Problem3.txt", header = TRUE)
+model <- lm(RentalRates~Age+OperatingExpense+VacancyRates+SquareFootage, data=estate_data)
+model
+```
+
+i) Estimated linear model:
+
+$Y = 12.2-0.142X_1+0.282X_2+0.6193X_3+7.924*10^{-6}X_4$
+
+ii)
+```{r}
+summary(model)
+```
+There are marginal relationships between response variable and covariates (except Vacancy Rates), for their p-values are all < 0.05. Therefore we reject the null hypothesis for all covariates except Vacancy Rates, which has a high p-value > 0.05
+
+iii)
+```{r}
+anova(model)
+```
+The p-values for f-test on rental rates and all of the covariates < 0.05
+Therefore, we reject the null hypothesis. There is an overall relationsip between the response variable (Rental Rate) againt all covariates at 5% significance level.
+
 #### Problem 4
+```{r}
+d <- read.table("HW3Problem4.txt", header = TRUE)
+
+model <- lm(y~poly(x, 3, raw=TRUE), data=d)
+model
+
+summary(model)
+
+plot(d$x,d$y, xlab="x", ylab="y", main="Estimated model for y~x")
+curve(16.97286 + 88.16596*x-18.08742*x^2 +0.91547*x^3, add=TRUE)
+
+```
+
+estimated model:
+$Y = 16.97286 + 88.16596X-18.08742 X^2 +0.91547X^3$
+
 
 #### Problem 5
+```{r}
+# Data
+y <- c(72,68,65,72,71,68,68,66,71,73)
+x1 <- c(72,68,66,70,72,69,67,63,72,74)
+x2 <- c(112,103,94,121,113,136,124,90,134,128)
+# Sample size
+n <- length(y)
+
+# i) Design matrix
+X <- c(rep(1,n),x1,x2)
+dim(X) <- c(n,3)
+X
+```
+$$\mathbf{X} = \left[\begin{array}
+{rrr}
+  1  & 72 & 112 \\
+  1  & 68  &103\\
+  1 &  66  & 94\\
+   1 &  70  &121\\
+  1 &  72  &113\\
+   1  & 69 & 136\\
+  1  & 67&  124\\
+  1 &  63 &  90\\
+  1   &72&  134\\
+  1   &74 & 128
+\end{array}\right]
+$$
+
+```{r}
+# ii) Least squares 
+beta <- solve(t(X)%*%X)%*%t(X)%*%y
+beta
+
+# iii)  SSE
+H <- X%*%solve(t(X)%*%X)%*%t(X)
+y.hat <- H%*%y
+e <- y-y.hat
+
+sse <- t(e)%*%e
+sse
+
+# iv) covariance matrix of beta
+df <- n - 1
+mse <- sse / df
+sig.hatSq <- as.numeric(mse)
+
+covbetamat <-sig.hatSq *solve(t(X)%*%X)
+covbetamat
+
+# v) filling out multiple regression summary tabl
+model <- lm(y~x1+x2)
+summary(model)
+
+```
+
+
+Estimate | Std.  Error | t value 
+------------- | -------------|-------------
+(Intercept) |17.762874  | 9.745144  | 1.823  
+x1           |0.748239   |0.172550   |4.336  
+x2          |-0.001869   |0.036288  |-0.051 
+
+
+
+

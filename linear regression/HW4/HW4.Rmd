@@ -90,9 +90,9 @@ $SSE_R = 98.650$
 
 $f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
 
-Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not a statistically signficant predictor to the response variable (rental rates) after holding all other variables constant.
+Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not a statistically signficant predictor for the response variable (rental rates) after holding all other variables constant.
 
-The f-calc (f = t^2 ; 0.3248 = 0.57^2) and p-value (0.57) here are the same as that of the t-test from part (i) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
+The f-calc and p-value (0.57) here are the same as that of the t-test (f = t^2 ; 0.3248 = 0.57^2) from part (i) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
 
 iv)
 
@@ -106,7 +106,7 @@ anova(model_t1)
 
 $f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
 
-We fail to reject the null hypothesis; vacancy rates (x3) is not a statistically significant predictor of rental rates (y) after holding other variables constant. The f-calc (f = t^2 ; 0.3248 = 0.57^2) and p-value (0.57) here are the same as that of the t-test from part (i) and that of the F-test from part (iii) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
+We fail to reject the null hypothesis; vacancy rates (x3) is not a statistically significant predictor of rental rates (y) after holding other variables constant. The f-calc and p-value (0.57) here are the same as that of the t-test (f = t^2 ; 0.3248 = 0.57^2) from part (i) and that of the F-test from part (iii) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
 
 v)
 
@@ -160,17 +160,12 @@ lines(supsmu(d_2$x, rstudent(model)), col = 2)
 
 ```
 
-The scatter plot seems to suggest that the response function is linear (clear linear pattern). The QQ-plot suggests that is is safe to assume normality of the error (relatively lines up well in the 45 degree line). 
-
-The line plot shows that it would not be unreasonable to assume the errors are independent; there is no clear pattern and it seems like whwite noise.
-
-erros constant variance (homoscedasticity)
+Since the graphs are not crystal clear, there can be subjective judgments. This is what I see: the scatter plot seems to suggest that the response function is linear (clear linear pattern). The QQ-plot suggests that is is safe to assume normality of the error (relatively lines up well in the 45 degree line). It is a bit heavy-tailed on the left; there are some potential outliers that deviate from the 45 degree line, but generally seems to land on the line. The line plot shows that it would not be unreasonable to assume the errors are independent; there is no clear pattern and it seems like white noise. It is a bit difficult to decide the homoscedasticity of the data. The residual plots show that fluctuations in the deleted residual's overall shape; the scatters seem to get wider towards the right, having a small megaphone shape from the middle to the right section of the plot. If this is true, there would be no constance in error variance. However, these fluctuations may be due to random chance and the errors may have constant variance. 
 
 iii)
 ```{r}
 
 library(MASS)
-#bac.box <-  boxcox(y^3~x)
 x <- d_2$x
 y <- d_2$y
 bac.box <-  boxcox(y~x)
@@ -197,8 +192,6 @@ sse.F <- anova(lm(y~fac.x))[[2]][2]
 f.calc <- ((sse.R - sse.F)/(c-2))/(sse.F/(n-c))
 f.calc
 1-pf(f.calc, c-2, n-c)
-
-
 ```
 $f_{calc} = 0.8237 \space p-value = 0.4622 > 0.05$
 
@@ -210,7 +203,3 @@ abline(lm(y~x))
 ```
 
 ### Problem 5 (handwritten in back)
-
-
-http://educ.jmu.edu/~chen3lx/math322/chapter4.pdf
-http://math-ta-x.utsc.utoronto.ca/stac67/Quiz4_soln.pdf

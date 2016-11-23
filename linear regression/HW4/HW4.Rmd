@@ -9,24 +9,24 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### Problem 1 (handwritten in back)
+### Problem 1 (handwritten in back)
 
-#### Problem 2
+### Problem 2
 
-i)
-
-$H_0 : \beta_1 = 0,\space H_A : \beta_3 \neq 0$
 ```{r}
-d <- read.table("HW3Problem3.txt", header = TRUE)
+d <- read.table("HW4Problem2.txt", header = TRUE)
 
 model <- lm(RentalRates~Age+OperatingExpense+VacancyRates+SquareFootage, data = d)
 summary(model)
 
 ```
+i)
+
+$H_0 : \beta_1 = 0,\space H_A : \beta_3 \neq 0$
 
 $t_{calc} = 0.570, p-value = 0.57 > 0.05$
 
-We fail to reject the null hypothesis; therefore, x3 (vacancy rate) is not statistically related to the response variable (rental rates) after holding all other variables constant.
+We fail to reject the null hypothesis; therefore, x3 (vacancy rate) is not a statistically predictor to the response variable (rental rates) after holding all other variables constant.
 
 ii)
 
@@ -61,6 +61,7 @@ $f_{calc} = 23.968, \space p-value = 1.003e-08 < 0.05$
 Therefore we reject the null hypothesis; age (x1) or vacancy rate (x3) may influence the rental rates.
 
 iii)
+
 $H_0 : \beta_3 = 0, \space H_A : \beta_3 \neq 0$
 
 Full model:
@@ -89,7 +90,8 @@ $SSE_R = 98.650$
 
 $f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
 
-Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not statistically related to the response variable (rental rates) after holding all other variables constant.
+Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not a statistically signficant predictor to the response variable (rental rates) after holding all other variables constant.
+
 The f-calc (f = t^2 ; 0.3248 = 0.57^2) and p-value (0.57) here are the same as that of the t-test from part (i) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
 
 iv)
@@ -118,7 +120,7 @@ predict(model, x.h, interval = "confidence", level = 1 - 0.5/4)
  3.  (15.55610, 16.24534)
  4.  (15.44142, 16.24535)
 
-#### Problem 3
+### Problem 3
 i)
 
 ```{r}
@@ -169,24 +171,46 @@ iii)
 
 library(MASS)
 #bac.box <-  boxcox(y^3~x)
-bac.box <-  boxcox(d_2$y~d_2$x)
+x <- d_2$x
+y <- d_2$y
+bac.box <-  boxcox(y~x)
 bac.lambda <-  bac.box$x[which(bac.box$y==max(bac.box$y))]
 bac.lambda
 
-#plot transformed data  
-#plot(d_2$x,log(d_2$y))
-#abline(lm(log(d_2$y)~d_2$x),col="green")
-
 ```
 
-#### Problem 4
+It probably wouldn't be necessary to perform this transformation since lambda is close to 1 and its interval includes 1. The plots from part ii) already reasonably resemble a linear relationship between x and y.
+
+### Problem 4
+$H_0 : E[Y] = \beta_0 + \beta_1x \space H_A : E[Y] \neq \beta_0 +\beta_1x$
 ```{r}
-d_3 <- read.table("1_22.txt", header = TRUE)
+d_3 <- read.table("1_22.txt")
+
+x <- d_3$V2
+y <- d_3$V1
+n <- length(y)
+c <- 4
+
+sse.R <- anova(lm(y~x))[[2]][2]
+fac.x <- factor(x)
+sse.F <- anova(lm(y~fac.x))[[2]][2]
+f.calc <- ((sse.R - sse.F)/(c-2))/(sse.F/(n-c))
+f.calc
+1-pf(f.calc, c-2, n-c)
+
 
 ```
+$f_{calc} = 0.8237 \space p-value = 0.4622 > 0.05$
+
+Therefore we fail to reject the null hypothesis; there may be a linear relationship between the elapsed time (x) and the hardness of the plastic (y). A linear relationship is probably appropriate for this dataset as further illustrated in the plot below.
+
+```{r}
+plot(x, y)
+abline(lm(y~x))
+```
+
+### Problem 5 (handwritten in back)
 
 
-#### Problem 5 (handwritten in back)
-
-
-
+http://educ.jmu.edu/~chen3lx/math322/chapter4.pdf
+http://math-ta-x.utsc.utoronto.ca/stac67/Quiz4_soln.pdf

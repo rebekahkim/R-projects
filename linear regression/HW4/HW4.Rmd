@@ -1,0 +1,104 @@
+---
+title: "STAT UN2103 HW4"
+author: "Rebekah Kim"
+date: "November 23, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Problem 1 (handwritten in back)
+
+#### Problem 2
+
+i)
+
+$H_0 : \beta_1 = 0,\space H_A : \beta_3 \neq 0$
+```{r}
+d <- read.table("HW3Problem3.txt", header = TRUE)
+
+model <- lm(RentalRates~Age+OperatingExpense+VacancyRates+SquareFootage, data = d)
+summary(model)
+
+```
+
+$t_{calc} = 0.570, p-value = 0.57 > 0.05$
+
+We fail to reject the null hypothesis; therefore, x3 (vacancy rate) is not statistically related to the response variable (rental rates) after holding all other variables constant.
+
+ii)
+
+$H_0 : \beta_1 = \beta_3 = 0, \space H_A : \beta_1 \neq 0 \space or \space \beta_3 \neq 0$
+
+Full model:
+$Y_i = \beta_0 + \beta_1x_{i1}+ \beta_2x_{i2}+ \beta_3x_{i3}+ \beta_4x_{i4}+ \epsilon_i$
+
+$df_F = n - p = n - 5 = 81 - 5 = 76$
+
+Reduced model:
+$Y_i = \beta_0 + \beta_2x_{i2}+ \beta_4x_{i4}+ \epsilon_i$
+
+$df_R = n - p = n - 3 = 81 - 3 = 78$
+
+```{r}
+r_model.1 <- lm(RentalRates~OperatingExpense+SquareFootage, data = d)
+```
+$f_{calc} = \dfrac{SSE_R - SSE_F}{df_R - df_F} \div \dfrac{SSE_F}{df_F}$
+
+```{r}
+#Shortcut
+anova(r_model.1, model)
+```
+
+$SSE_F = 98.231$
+
+$SSE_R = 159.491$
+
+$f_{calc} = 23.968, \space p-value = 1.003e-08 < 0.05$
+
+Therefore we reject the null hypothesis; age (x1) or vacancy rate (x3) may influence the rental rates.
+
+iii)
+$H_0 : \beta_3 = 0, \space H_A : \beta_3 \neq 0$
+
+Full model:
+$Y_i = \beta_0 + \beta_1x_{i1}+ \beta_2x_{i2}+ \beta_3x_{i3}+ \beta_4x_{i4}+ \epsilon_i$
+
+$df_F = n - p = n - 5 = 81 - 5 = 76$
+
+Reduced model:
+$Y_i = \beta_0 + \beta_1x_{i1}+ \beta_2x_{i2}+ \beta_4x_{i4}+ \epsilon_i$
+
+$df_R = n - p = n - 4 = 81 - 4 = 77$
+
+```{r}
+r_model.2 <- lm(RentalRates~Age+OperatingExpense+SquareFootage, data = d)
+```
+$f_{calc} = \dfrac{SSE_R - SSE_F}{df_R - df_F} \div \dfrac{SSE_F}{df_F}$
+
+```{r}
+#Shortcut
+anova(r_model.2, model)
+```
+
+$SSE_F = 98.231$
+
+$SSE_R = 98.650$
+
+$f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
+
+Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not statistically related to the response variable (rental rates) after holding all other variables constant.
+The f-calc (0.570) and p-value (0.57) here are the same as that of the t-test from part (i) and therefore we reach the same conclusion: fail to reject null hypothesis.
+
+iv)
+
+
+#### Problem 3
+
+
+#### Problem 4
+
+
+#### Problem 5 (handwritten in back)

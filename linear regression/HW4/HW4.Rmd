@@ -90,15 +90,103 @@ $SSE_R = 98.650$
 $f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
 
 Therefore, we fail to reject the null hypothesis; vacancy rate (x3) is not statistically related to the response variable (rental rates) after holding all other variables constant.
-The f-calc (0.570) and p-value (0.57) here are the same as that of the t-test from part (i) and therefore we reach the same conclusion: fail to reject null hypothesis.
+The f-calc (f = t^2 ; 0.3248 = 0.57^2) and p-value (0.57) here are the same as that of the t-test from part (i) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
 
 iv)
 
+$H_0 : \beta_3 = 0, \space H_A : \beta_3 \neq 0$
+
+```{r}
+model_t1 <- lm(RentalRates~Age+OperatingExpense+SquareFootage+VacancyRates, data = d)
+
+anova(model_t1)
+```
+
+$f_{calc} = 0.3248, \space p-value = 0.5704 > 0.05$
+
+We fail to reject the null hypothesis; vacancy rates (x3) is not a statistically significant predictor of rental rates (y) after holding other variables constant. The f-calc (f = t^2 ; 0.3248 = 0.57^2) and p-value (0.57) here are the same as that of the t-test from part (i) and that of the F-test from part (iii) as expected and therefore we reach the same conclusion: fail to reject null hypothesis.
+
+v)
+
+```{r}
+x.h <- data.frame(Age = c(5,6,14,12), OperatingExpense = c(8.25, 8.5, 11.5, 10.25), VacancyRates = c(0, 0.23, 0.11, 0), SquareFootage = c(250000, 270000, 300000, 310000))
+
+predict(model, x.h, interval = "confidence", level = 1 - 0.5/4)
+```
+ 1.  (15.36676, 16.22950)
+ 2.  (15.66156, 16.39351)
+ 3.  (15.55610, 16.24534)
+ 4.  (15.44142, 16.24535)
 
 #### Problem 3
+i)
 
+```{r}
+d_2 <- read.table("HW4Problem3.txt", header = TRUE)
+
+model <- lm(y~x, data = d_2)
+summary(model)
+
+```
+$y = -0.5802 + 15.0352x$
+
+ii)
+```{r}
+n <- length(d_2[,1])
+
+par(mfrow=c(2,3))
+
+plot(d_2$x,d_2$y, main="Scatter Plot", xlab = "x", ylab = "y")
+abline(a =  -0.5802, b = 15.0352)
+
+qqnorm(rstudent(model), main = "QQ-Plot")
+abline(a=0, b=1,lty=3)
+
+hist(rstudent(model), main = "Histogram")
+
+plot(1:n, rstudent(model), main = "Line Plot", ylab="Deleted residuals")
+abline(h = 0, lty = 3)
+lines(1:n,rstudent(model),col=2)
+
+plot(predict(model), rstudent(model), main= "Residual plot", xlab = "y-hat", ylab = "Deleted residuals")
+abline(h = 0, lty = 3)
+lines(supsmu(predict(model), rstudent(model)), col=2)
+
+plot(d_2$x, rstudent(model), main = "Residual Plot", xlab = "x", ylab = "Deleted residuals")
+abline(h = 0, lty = 3)
+lines(supsmu(d_2$x, rstudent(model)), col = 2)
+
+```
+
+The scatter plot seems to suggest that the response function is linear (clear linear pattern). The QQ-plot suggests that is is safe to assume normality of the error (relatively lines up well in the 45 degree line). 
+
+The line plot shows that it would not be unreasonable to assume the errors are independent; there is no clear pattern and it seems like whwite noise.
+
+erros constant variance (homoscedasticity)
+
+iii)
+```{r}
+
+library(MASS)
+#bac.box <-  boxcox(y^3~x)
+bac.box <-  boxcox(d_2$y~d_2$x)
+bac.lambda <-  bac.box$x[which(bac.box$y==max(bac.box$y))]
+bac.lambda
+
+#plot transformed data  
+#plot(d_2$x,log(d_2$y))
+#abline(lm(log(d_2$y)~d_2$x),col="green")
+
+```
 
 #### Problem 4
+```{r}
+d_3 <- read.table("1_22.txt", header = TRUE)
+
+```
 
 
 #### Problem 5 (handwritten in back)
+
+
+

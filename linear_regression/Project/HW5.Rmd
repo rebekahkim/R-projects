@@ -1,0 +1,54 @@
+---
+title: "STAT UN2103 HW5"
+author: "Rebekah Kim"
+date: "November 29, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### I. Introduction
+
+```{r}
+d <- read.table("salary.txt",sep = ",", header = TRUE)
+
+head(d)
+
+dfram <- data.frame(Wage = d$wage, Edu = d$edu, Exp = d$exp, City = d$city, Region = d$reg, Race = d$race, College = d$deg, Commute = d$com, Employees = d$emp)
+
+head(dfram)
+
+black <- subset(dfram, Race == "black")
+white <- subset(dfram, Race == "white")
+nonblack <- subset(dfram, Race != "black")
+
+race <- c(rep("black", nrow(black)), rep("white", nrow(white)))
+wage <- c(black$Wage, white$Wage)
+# remove outliers
+boxplot(wage~race, main="boxplot", xlab="Race", ylab="Wage", outline=FALSE)
+
+#model.1 <- lm(wage~edu, data=d)
+#plot(d$edu, d$wage)
+#abline(-32.2755,51.5334)
+
+#summary(model.1)
+n <- length(d)
+n
+```
+
+### II. Statistical Model
+
+### III. Research Question
+
+### IV. Appendix
+
+#### a. Model Selection
+
+#### b. Diagnostics and Model Validation
+
+#### c. Influential Observations and Collinearity
+
+### d. Others
+

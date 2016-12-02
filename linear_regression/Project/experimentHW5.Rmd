@@ -1,0 +1,203 @@
+---
+title: "STAT UN2103 HW5"
+author: "Rebekah Kim"
+date: "November 29, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### I. Introduction
+
+```{r}
+d <- read.table("salary.txt",sep = ",", header = TRUE)
+
+head(d)
+
+
+df <- read.csv("salary.txt",header=T)
+
+# exploratory data analysis
+
+df$reg2 <- as.character(df$reg)
+regions <- unique(df$reg2)
+df$deg01[df$deg == "yes"] <- 1
+df$deg01[df$deg == "no"] <- 4
+
+#par(mfrow =c(2,2))
+
+black <- df$race=="black"
+white <- df$race=="white"
+other <- df$race=="other"
+
+
+df$color[black] = "red"
+df$color[white] = "blue"
+df$color[other] = "green"
+
+
+for(r in regions){
+  df.sub <- df[df$reg2 == r,]
+  plot(df.sub$exp,
+       log(df.sub$wage),
+       #col= df$color,
+       pch=df.sub$deg01,
+       main = r)
+  #lines(supsmu(df$edu))
+
+lines(supsmu(df$exp[black],log(df$wage)[black]),col=df$color[black] )
+lines(supsmu(df$exp[white],log(df$wage)[white]),col=df$color[white] )
+lines(supsmu(df$exp[other],log(df$wage)[other]),col=df$color[other] )
+legend("topleft",legend=c("Black","White","Other"), col=c(2,4,3),lty=c(1,1,1)) 
+legend("topright", legend=c("College degree", "No college degree"), pch=c(1,4))
+}
+
+
+#http://stackoverflow.com/questions/17551193/r-color-scatter-plot-points-based-on-values
+
+
+# Pick trainging and test data
+
+# Use sample 
+# Set seed to 0 
+set.seed(0)
+index <- sample(1:nrow(df),4965,replace = F)
+train.data <- df[-index,]
+data <- train.data 
+test.data <- df[index,]
+
+
+# Quality control check
+sum(train.data$race=="black")/nrow(data)
+sum(test.data$race=="black")/nrow(test.data)  
+
+
+# Rough model 1 
+summary(lm(wage~edu+exp+city+reg+race+deg+com,data=train.data))
+
+# Rough model 2 
+summary(lm(log(wage)~edu+exp+city+reg+race+deg+com,data=train.data))
+
+
+
+# EDA (Use smootehrs)
+
+##### com
+plot(data$com,log(data$wage))
+lines(supsmu(data$com,log(data$wage)),col=2)
+
+##### edu
+plot(data$edu,log(data$wage))
+lines(supsmu(data$edu,log(data$wage)),col=2)
+
+##### edu
+boxplot(log(data$wage)~data$edu)
+lines(supsmu(data$edu,log(data$wage)),col=2)
+
+
+##### exp
+plot(data$exp,log(data$wage))
+lines(supsmu(data$exp,log(data$wage)),col=2)
+
+
+##### emp
+plot(data$emp,log(data$wage))
+lines(supsmu(data$emp,log(data$wage)),col=2)
+
+#### Interaction plots
+
+# City vs. region (yes)
+city <- data$city
+reg <- data$reg
+wage <- data$wage
+interaction.plot(city,reg,log(wage))
+
+
+# race vs. city (maybe not)
+race <- data$race
+interaction.plot(race,reg,log(wage))
+
+
+# race vs. city (maybe not)
+interaction.plot(race,city,log(wage))
+
+
+
+# edu vs.degree (the lines do cross) 
+plot(data$edu,log(wage),col=data$deg)
+degree <- data$deg=="yes"
+abline(lm(log(wage)[degree]~data$edu[degree]),col="red")
+abline(lm(log(wage)[-degree]~data$edu[-degree]),col="black")
+
+
+# exp vs. race (the lines do cross) 
+plot(data$exp,log(wage),col=data$race)
+
+plot(data$exp,log(wage))
+
+black <- data$race=="black"
+white <- data$race=="white"
+other <- data$race=="other"
+
+lines(supsmu(data$exp[black],log(data$wage)[black]),col=2)
+lines(supsmu(data$exp[white],log(data$wage)[white]),col=3)
+lines(supsmu(data$exp[other],log(data$wage)[other]),col=4)
+legend("topright",legend=c("Black","White","Other"),col=c(2,3,4),lty=c(1,1,1))
+
+
+# Defining indicators (dummy variables)
+black <- I(data$race=="black")
+white <- I(data$race=="white")
+other <- I(data$race=="other")
+
+
+
+
+
+
+```
+
+```{r}
+dfram <- data.frame(Wage = d$wage, Edu = d$edu, Exp = d$exp, City = d$city, Region = d$reg, Race = d$race, College = d$deg, Commute = d$com, Employees = d$emp)
+
+head(dfram)
+
+black <- subset(dfram, Race == "black")
+white <- subset(dfram, Race == "white")
+nonblack <- subset(dfram, Race != "black")
+
+race <- c(rep("black", nrow(black)), rep("white", nrow(white)))
+wage <- c(black$Wage, white$Wage)
+# remove outliers
+boxplot(wage~race, main="boxplot", xlab="Race", ylab="Wage", outline=FALSE)
+# log wage
+boxplot(log(wage)~race, main="boxplot", xlab="Race", ylab="Wage")
+
+
+#model.1 <- lm(wage~edu, data=d)
+#plot(d$edu, d$wage)
+#abline(-32.2755,51.5334)
+
+#summary(model.1)
+n <- length(d)
+n
+
+
+
+```
+
+### II. Statistical Model
+
+### III. Research Question
+
+### IV. Appendix
+
+#### a. Model Selection
+
+#### b. Diagnostics and Model Validation
+
+#### c. Influential Observations and Collinearity
+
+### d. Others

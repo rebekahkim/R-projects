@@ -7,19 +7,30 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 ### I. Introduction
 
 ```{r}
-d <- read.table("salary.txt",sep = ",", header = TRUE)
+df <- read.csv("salary.txt", header = T)
 
-head(d)
+set.seed(0)
+index <- sample(1:nrow(df),4965,replace = F)
+train.data <- df[-index,]
+data <- train.data 
+test.data <- df[index,]
 
-
-df <- read.csv("salary.txt",header=T)
+head(df)
+str(df)
 
 # exploratory data analysis
+
+ggplot(df)+
+  geom_bar(stat = "identity", aes(x = reg, y = wage, fill = race), position = "dodge")
+
+#subset
+white_midwest <- df %>% filter(race =="white", reg == "midwest")
 
 df$reg2 <- as.character(df$reg)
 regions <- unique(df$reg2)

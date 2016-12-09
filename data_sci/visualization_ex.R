@@ -41,8 +41,9 @@ ggplot(data = mpg) + geom_point(aes(x = displ, y = hwy, col = class, shape = fac
 # condition from aes mapping
 ggplot(data = mpg, mapping = aes(x = displ, y = hwy, col = year > 1999)) + geom_point()
 
-
-## Facets- for discrete data (chops up into data point if continuous used)
+#########################
+## FACETS- for discrete data (chops up into data point if continuous used)
+#########################
 #nrow optional
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_wrap(~class, nrow=2)
 #empty cells mean there is no data satisfying both categories
@@ -53,8 +54,10 @@ ggplot(data = mpg) + geom_point(mapping = aes(x = drv, y = factor(cyl)))
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(.~ cyl)
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(drv~.)
 
-
+#########################
 ## Geometric objects
+#########################
+
 ggplot(data = mpg) + 
     geom_point(
       mapping = aes(x = displ, y = hwy)
@@ -111,7 +114,10 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
   #geom_smooth(se= F)
   geom_smooth(aes(linetype = drv), se= F)
 
-#statistical transformations
+#########################
+##STATISTICAL TRANSFORMATIONS
+#########################
+
 str(diamonds)
 
 #bar graph
@@ -152,9 +158,84 @@ ggplot(data = diamonds) +
   geom_bar(mapping = aes(x = cut, y = ..prop..))
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, fill = color, y = ..prop..))
+#????group??? 
+ggplot(data = diamonds) +
+  geom_bar(mapping = aes(x = cut , fill = color, group = 1, y = ..prop..))
+
+#################
+#POSITION ADJUSTMENTS
+#################
+ggplot(diamonds, aes(x = cut))+
+  geom_bar(aes(fill = clarity))
+  #geom_bar(aes(color = clarity))
+
+#position "identity" - place each object exactly where it falls in context of graph
+ggplot(diamonds, aes(x = cut, color = clarity))+
+  geom_bar(position = "identity")
+
+#position "fill"- stacking to same height with 1 as 100%
+ggplot(diamonds, aes(x =cut, fill = clarity))+
+  geom_bar(position = "fill")
+
+#position "dodge"- overlap objects beside each other
+ggplot(diamonds)+
+  geom_bar(aes(x = cut, fill = clarity), position = "dodge")
+
+#position "jitter"- solve overplotting problem - small random noise added
+ggplot(mpg)+
+  geom_jitter(aes(x = displ, y = hwy))
+  # same as
+  #geom_point(aes(x = displ, y = hwy), position = "jitter")
+
+ggplot(mpg)+
+  geom_jitter(aes(x = cty, y = hwy), width = 0.8, height = 0.6)
+
+#geom_count - count num of obs at each location ~ size
+ggplot(mpg)+
+  geom_count(aes(x= cty, y = hwy))
+
+#geom_boxplot position default "dodge"
+ggplot(mpg)+
+  geom_boxplot(aes(x = factor(cyl), y = hwy))
 
 
-#group `````````````
+###################
+#COORDINATE SYSTEMS
+###################
+
+#flipping x and y axes
+ggplot(mpg, aes(x = class, y = hwy))+
+  geom_boxplot()+
+  coord_flip()
+
+#cartesian coordinate
+ggplot(diamonds)+
+  geom_bar(aes(x = cut, fill = cut))+
+  theme(aspect.ratio = 1)+
+  labs(title = "Diamond cuts", subtitle = "polar", x = NULL, y = "count")+
+  coord_polar()
+
+coef(lm(mpg$hwy~mpg$cty))
+
+ggplot(mpg, aes(x= cty, y = hwy))+
+  geom_point()+
+  #abline - default slope 1 intercept 0
+  geom_abline(slope = 1.337, intercept = 0.892)+
+  #fixed coord- set ratio (number of units on y equivalent to one unit in x axis)- default 1
+  coord_fixed()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

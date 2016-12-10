@@ -24,12 +24,35 @@ test.data <- df[index,]
 head(df)
 str(df)
 
+#got 34% for this 
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg+com,data=train.data))
+#35%
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*exp*edu+reg+race+deg+com,data=train.data))
+#35.26%
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*edu*exp*deg+reg*city+reg*exp*edu*deg+race*exp*edu*deg*city+reg+race+deg+com,data=train.data))
+
 # exploratory data analysis
 
 ggplot(df)+
-  geom_bar(stat = "identity", aes(x = reg, y = wage, fill = race), position = "dodge")
+  geom_boxplot(aes(x = reg, y = log(wage), fill = race))
+
+ggplot(data, aes(x = exp, y = log(wage), group = race, color = race)) +
+  geom_smooth()
+
+ggplot(data, aes(x = race, y = log(wage)))+
+  geom_point()+
+  geom_smooth()
 
 #subset
+library(leaps)
+library(bestglm)
+min.model <- lm(wage~1, data=data)
+full.model <- formula(lm(wage~ , data = data))
+step(min.model,scope = full.model, direction = c("forward"))
+
+
+
+
 white_midwest <- df %>% filter(race =="white", reg == "midwest")
 
 df$reg2 <- as.character(df$reg)
@@ -170,7 +193,7 @@ other <- I(data$race=="other")
 
 ```
 
-```{r}
+
 dfram <- data.frame(Wage = d$wage, Edu = d$edu, Exp = d$exp, City = d$city, Region = d$reg, Race = d$race, College = d$deg, Commute = d$com, Employees = d$emp)
 
 head(dfram)
@@ -197,7 +220,6 @@ n
 
 
 
-```
 
 ### II. Statistical Model
 

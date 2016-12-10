@@ -1,5 +1,3 @@
-package r;
-
 // A Java program to print all subsets of a set
 import java.io.IOException;
  

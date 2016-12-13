@@ -7,48 +7,171 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(leaps)
+library(bestglm)
+library(car)
 ```
 
-### I. Introduction
+## I. Introduction
+### a. Goal of analysis
+#### Research Questions
+1. Do Blacks have statistically different wages compared to Whites?
+2. Do Blacks have statistically different wages compared to all other races?
+
+### b. Setup
+```{r}
+df <- read.csv("salary.txt", header = T)
+
+set.seed(0)
+index <- sample(1:nrow(df),4965,replace = F)
+train.data <- df[-index,]
+data <- train.data 
+test.data <- df[index,]
+```
+
+### c. Exploratory Data Analysis
+```{r}
+head(df)
+str(df)
+
+# Experience (exp)
+ggplot(data, aes(x = exp, y = log(wage), group = race, color = race)) +
+  geom_smooth()
+
+# Race (race) by Region (reg)
+ggplot(data, aes(x = race, y = log(wage)))+
+  geom_boxplot() +
+  facet_wrap(~reg, nrow = 1)
+
+# City (city) by Race (race)
+ggplot(data, aes(x = city, y = log(wage))) +
+  geom_boxplot() +
+  facet_wrap(~race, nrow = 1)
+
+# Commute distance (com)
+ggplot(data, aes(x = com, y = log(wage))) +
+  geom_point() +
+  geom_smooth(aes(color = race))
+
+# Education years (edu)
+ggplot(data, aes(x = edu, y = log(wage))) +
+  geom_point() +
+  geom_smooth(aes(color = race)) 
+
+# Degree (deg) by Race (race)
+ggplot(data, aes(x = deg, y = log(wage))) +
+  geom_boxplot() +
+  facet_wrap(~race, nrow = 1)
+
+# Number of Employees (emp)
+ggplot(data, aes(x = emp, y = log(wage))) +
+  geom_point()+
+  geom_smooth(aes(group = race, color = race))
+
+```
+
+### d. Interaction plots
+```{r}
+# City vs. region (yes)
+city <- data$city
+reg <- data$reg
+wage <- data$wage
+interaction.plot(city,reg,log(wage))
+
+
+# race vs. city (maybe not)
+race <- data$race
+interaction.plot(race,reg,log(wage))
+
+
+# race vs. city (maybe not)
+interaction.plot(race,city,log(wage))
+
+
+# edu vs.degree (the lines do cross) 
+plot(data$edu,log(wage),col=data$deg)
+degree <- data$deg=="yes"
+abline(lm(log(wage)[degree]~data$edu[degree]),col="red")
+abline(lm(log(wage)[-degree]~data$edu[-degree]),col="black")
+
+
+# exp vs. race (the lines do cross) <= meaning
+
+
+```
+
+## II. Statistical Model
+```{r}
+# 34% 
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg+com,data=train.data))
+
+#35%
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*exp*edu+reg+race+deg+com,data=train.data))
+
+#35.26%
+#summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*edu*exp*deg+reg*city+reg*exp*edu*deg+race*exp*edu*deg*city+reg+race+deg+com,data=train.data))
+
+#35.4
+model <- lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
+    reg + emp + edu + exp:edu + city:edu + exp:reg + city:reg + 
+    reg:edu + exp:city + race:emp + city:race, data = data)
+summary(model)
+
+p <- 16
+n <- length(data)
+
+#dffits(model)
+plot(dffits(model), ylim=c(-0.5,0.5))
+abline(h=2*sqrt(p/n), col=2)
+abline(h=-2*sqrt(p/n), col=2)
+
+#35.42
+#summary(lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
+    # emp + reg + deg + edu + city:reg + exp:city + exp:reg + exp:emp + 
+    # city:deg + exp:deg + race:emp + race:deg + reg:deg + city:edu + 
+    # exp:edu + reg:edu + exp:race + race:edu + emp:edu + exp:city:edu + 
+    # city:reg:edu + race:emp:edu + exp:race:edu, data = data))
+
+```
+
+## III. Research Question
+
+## IV. Appendix
+
+### a. Model Selection
+#### Transformation
+I have transformed the response so that we have log(wage).
+
+#### Functional Forms
+According to EDA, experience and education seem to have quadratic forms. Thus, both predictor variables were squared.
+
+#### Selected and Unselected Variables
+The commute distance did not seem to have an effect the response, according to EDA. 
+
+### b. Diagnostics and Model Validation
 
 ```{r}
-d <- read.table("salary.txt",sep = ",", header = TRUE)
 
-head(d)
+exp <- data$exp
+edu <- data$edu
+city <- data$city
+race <- data$race
+reg <- data$reg
+emp <- data$emp
+wage <- data$wage
 
-dfram <- data.frame(Wage = d$wage, Edu = d$edu, Exp = d$exp, City = d$city, Region = d$reg, Race = d$race, College = d$deg, Commute = d$com, Employees = d$emp)
+model.df <- data.frame(city, race , reg , emp , edu,  exp * edu , city*edu , exp*reg ,city*reg , reg*edu ,exp*city  ,race*emp , city*race, log(wage))
 
-head(dfram)
+#bestglm(model.df, Ic="AIC")
+#bestglm(model.df, Ic="BIC")
 
-black <- subset(dfram, Race == "black")
-white <- subset(dfram, Race == "white")
-nonblack <- subset(dfram, Race != "black")
-
-race <- c(rep("black", nrow(black)), rep("white", nrow(white)))
-wage <- c(black$Wage, white$Wage)
-# remove outliers
-boxplot(wage~race, main="boxplot", xlab="Race", ylab="Wage", outline=FALSE)
-
-#model.1 <- lm(wage~edu, data=d)
-#plot(d$edu, d$wage)
-#abline(-32.2755,51.5334)
-
-#summary(model.1)
-n <- length(d)
-n
 ```
 
-### II. Statistical Model
+### c. Influential Observations and Collinearity
+```{r}
+vif(model)
+```
 
-### III. Research Question
-
-### IV. Appendix
-
-#### a. Model Selection
-
-#### b. Diagnostics and Model Validation
-
-#### c. Influential Observations and Collinearity
-
-### d. Others
+## d. Others
 

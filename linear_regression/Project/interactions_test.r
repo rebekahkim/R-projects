@@ -1,6 +1,6 @@
 #testing stepwise regression with all interactions
 
-min.model <- lm(wage~1, data=data)
+min.model <- lm(log(wage)~1, data=data)
 # full.model <- formula(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg+com+emp+
 #                            edu*exp+
 #                            edu*race+

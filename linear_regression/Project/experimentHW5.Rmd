@@ -8,6 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(leaps)
+library(bestglm)
 ```
 
 ### I. Introduction
@@ -20,7 +22,10 @@ index <- sample(1:nrow(df),4965,replace = F)
 train.data <- df[-index,]
 data <- train.data 
 test.data <- df[index,]
+```
 
+Exploratory Data Analysis
+```{r}
 head(df)
 str(df)
 
@@ -30,6 +35,16 @@ str(df)
 #summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*exp*edu+reg+race+deg+com,data=train.data))
 #35.26%
 #summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*edu*exp*deg+reg*city+reg*exp*edu*deg+race*exp*edu*deg*city+reg+race+deg+com,data=train.data))
+#35.4
+lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
+    reg + emp + edu + exp:edu + city:edu + exp:reg + city:reg + 
+    reg:edu + exp:city + race:emp + city:race, data = data)
+#35.42
+lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
+    emp + reg + deg + edu + city:reg + exp:city + exp:reg + exp:emp + 
+    city:deg + exp:deg + race:emp + race:deg + reg:deg + city:edu + 
+    exp:edu + reg:edu + exp:race + race:edu + emp:edu + exp:city:edu + 
+    city:reg:edu + race:emp:edu + exp:race:edu, data = data)
 
 # exploratory data analysis
 
@@ -44,8 +59,7 @@ ggplot(data, aes(x = race, y = log(wage)))+
   geom_smooth()
 
 #subset
-library(leaps)
-library(bestglm)
+
 min.model <- lm(wage~1, data=data)
 full.model <- formula(lm(log(wage)~edu+exp+city+reg+race+deg+com+emp+I(edu^2)+I(exp^2), data= data))
 step(min.model,scope = full.model, direction = c("forward"))
@@ -91,31 +105,6 @@ legend("topright", legend=c("College degree", "No college degree"), pch=c(1,4))
 
 
 #http://stackoverflow.com/questions/17551193/r-color-scatter-plot-points-based-on-values
-
-
-# Pick trainging and test data
-
-# Use sample 
-# Set seed to 0 
-set.seed(0)
-index <- sample(1:nrow(df),4965,replace = F)
-train.data <- df[-index,]
-data <- train.data 
-test.data <- df[index,]
-
-
-# Quality control check
-sum(train.data$race=="black")/nrow(data)
-sum(test.data$race=="black")/nrow(test.data)  
-
-
-# Rough model 1 
-summary(lm(wage~edu+exp+city+reg+race+deg+com,data=train.data))
-
-# Rough model 2 
-summary(lm(log(wage)~edu+exp+city+reg+race+deg+com,data=train.data))
-
-
 
 # EDA (Use smootehrs)
 

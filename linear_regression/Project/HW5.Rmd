@@ -11,13 +11,14 @@ library(tidyverse)
 library(leaps)
 library(bestglm)
 library(car)
+require(gridExtra)
 ```
 
 ## I. Introduction
 ### a. Goal of analysis
 #### Research Questions
-1. Do Blacks have statistically different wages compared to Whites?
-2. Do Blacks have statistically different wages compared to all other races?
+> 1. Do Blacks have statistically different wages compared to Whites?
+> 2. Do Blacks have statistically different wages compared to all other races?
 
 ### b. Setup
 ```{r}
@@ -30,62 +31,70 @@ data <- train.data
 test.data <- df[index,]
 ```
 
-### c. Exploratory Data Analysis
-```{r}
+### c. Exploratory Data Analysis with Interaction Plots
+```{r message=FALSE}
 head(df)
 str(df)
 
-# Experience (exp)
-ggplot(data, aes(x = exp, y = log(wage), group = race, color = race)) +
-  geom_smooth()
 
 # Race (race) by Region (reg)
 ggplot(data, aes(x = race, y = log(wage)))+
   geom_boxplot() +
   facet_wrap(~reg, nrow = 1)
 
-# City (city) by Race (race)
-ggplot(data, aes(x = city, y = log(wage))) +
-  geom_boxplot() +
-  facet_wrap(~race, nrow = 1)
+# Experience (exp)
+plot1 <- ggplot(data, aes(x = exp, y = log(wage), group = race)) +
+  geom_smooth(aes(linetype = race, color = race))
 
 # Commute distance (com)
-ggplot(data, aes(x = com, y = log(wage))) +
+plot2 <- ggplot(data, aes(x = com, y = log(wage))) +
   geom_point() +
-  geom_smooth(aes(color = race))
+  geom_smooth(aes(linetype = race, color = race))
 
 # Education years (edu)
-ggplot(data, aes(x = edu, y = log(wage))) +
+plot3<- ggplot(data, aes(x = edu, y = log(wage))) +
   geom_point() +
-  geom_smooth(aes(color = race)) 
+  geom_smooth(aes(linetype = race, color = race)) 
 
-# Degree (deg) by Race (race)
-ggplot(data, aes(x = deg, y = log(wage))) +
+# Number of Employees (emp)
+plot4 <- ggplot(data, aes(x = emp, y = log(wage))) +
+  geom_point()+
+  geom_smooth(aes(group = race, linetype = race, color = race))
+
+grid.arrange(plot1, plot2, plot3, plot4, ncol=2)
+
+# City (city) by Race (race)
+plot5 <- ggplot(data, aes(x = city, y = log(wage))) +
   geom_boxplot() +
   facet_wrap(~race, nrow = 1)
 
-# Number of Employees (emp)
-ggplot(data, aes(x = emp, y = log(wage))) +
-  geom_point()+
-  geom_smooth(aes(group = race, color = race))
+# Degree (deg) by Race (race)
+plot6<- ggplot(data, aes(x = deg, y = log(wage))) +
+  geom_boxplot() +
+  facet_wrap(~race, nrow = 1)
 
-```
+grid.arrange(plot5, plot6, nrow=1)
 
-### d. Interaction plots
-```{r}
-# City vs. region (yes)
+
+par(mfrow=c(2,3))
+
+exp <- data$exp
+edu <- data$edu
 city <- data$city
+race <- data$race
 reg <- data$reg
+emp <- data$emp
 wage <- data$wage
+
+# City vs. region (yes)
 interaction.plot(city,reg,log(wage))
 
 
-# race vs. city (maybe not)
-race <- data$race
+# race vs. region- lines cross
 interaction.plot(race,reg,log(wage))
 
 
-# race vs. city (maybe not)
+# race vs. city- slightly different slopes (included)
 interaction.plot(race,city,log(wage))
 
 
@@ -95,9 +104,26 @@ degree <- data$deg=="yes"
 abline(lm(log(wage)[degree]~data$edu[degree]),col="red")
 abline(lm(log(wage)[-degree]~data$edu[-degree]),col="black")
 
+# exp vs. race (the lines do cross)
+interaction.plot(race, exp, log(wage))
+#exp:edu
 
-# exp vs. race (the lines do cross) <= meaning
+#interaction.plot(exp, edu, log(wage))
 
+#city:edu 
+interaction.plot(city, edu, log(wage))
+
+#exp:reg 
+interaction.plot(reg, exp, log(wage))
+
+#reg:edu 
+interaction.plot(reg, edu, log(wage))
+
+#exp:city 
+interaction.plot(city, exp, log(wage))
+
+# race:emp
+interaction.plot(race, emp, log(wage))
 
 ```
 
@@ -112,59 +138,153 @@ abline(lm(log(wage)[-degree]~data$edu[-degree]),col="black")
 #35.26%
 #summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+city*edu*exp*deg+reg*city+reg*exp*edu*deg+race*exp*edu*deg*city+reg+race+deg+com,data=train.data))
 
-#35.4
+#35.38
 model <- lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
     reg + emp + edu + exp:edu + city:edu + exp:reg + city:reg + 
     reg:edu + exp:city + race:emp + city:race, data = data)
 summary(model)
 
 p <- 16
-n <- length(data)
+n <- nrow(data)
 
 #dffits(model)
-plot(dffits(model), ylim=c(-0.5,0.5))
-abline(h=2*sqrt(p/n), col=2)
-abline(h=-2*sqrt(p/n), col=2)
 
-#35.42
-#summary(lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
-    # emp + reg + deg + edu + city:reg + exp:city + exp:reg + exp:emp + 
-    # city:deg + exp:deg + race:emp + race:deg + reg:deg + city:edu + 
-    # exp:edu + reg:edu + exp:race + race:edu + emp:edu + exp:city:edu + 
-    # city:reg:edu + race:emp:edu + exp:race:edu, data = data))
+# DFBETAS would be more appropriate since we are focusing on answering the research questions (testing slopes), not predicting
 
+x <- seq(1, nrow(data))
+y.intc <- 2/sqrt(n)
+         
+dfplot1 <- ggplot(data, aes(x =x, y = dfbetas(model)[,2])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+             
+dfplot2 <-ggplot(data, aes(x =x, y = dfbetas(model)[,3])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+             
+dfplot3 <-ggplot(data, aes(x =x, y = dfbetas(model)[,4])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+      
+dfplot4<-ggplot(data, aes(x =x, y = dfbetas(model)[,5])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+      
+dfplot5<-ggplot(data, aes(x =x, y = dfbetas(model)[,6])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+      
+dfplot6<-ggplot(data, aes(x =x, y = dfbetas(model)[,7])) +
+  geom_point() +
+  geom_hline(aes(yintercept = y.intc, col= "red")) +
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")
+
+grid.arrange(dfplot1,dfplot2, dfplot3,dfplot4,dfplot5,dfplot6, nrow=2)
+             
 ```
 
 ## III. Research Question
+### a. Setup
+### b. Discussion & Conclusion
 
 ## IV. Appendix
 
 ### a. Model Selection
 #### Transformation
-I have transformed the response so that we have log(wage).
+The QQ-plot below that shows the untransformed response looks very bad (barely aligns with the 45 degree line). The model's QQ-plot shows that a log transformation of the response is a good choice. 
+
+```{r}
+par(mfrow=c(1,3))
+qqnorm(rstudent(lm(wage~edu+exp+city+reg+race+deg+com+emp, data=data)))
+qqnorm(rstudent(model))
+```
+
 
 #### Functional Forms
 According to EDA, experience and education seem to have quadratic forms. Thus, both predictor variables were squared.
 
 #### Selected and Unselected Variables
+The basic model where all predictors were used didn't do very well.
 The commute distance did not seem to have an effect the response, according to EDA. 
 
 ### b. Diagnostics and Model Validation
 
 ```{r}
 
-exp <- data$exp
-edu <- data$edu
-city <- data$city
-race <- data$race
-reg <- data$reg
-emp <- data$emp
-wage <- data$wage
+exp <- I(data$exp)
+edu <- I(data$edu)
+city <- I(data$city)
+race <- I(data$race)
+reg <- I(data$reg)
+emp <- I(data$emp)
+wage <- I(data$wage)
 
-model.df <- data.frame(city, race , reg , emp , edu,  exp * edu , city*edu , exp*reg ,city*reg , reg*edu ,exp*city  ,race*emp , city*race, log(wage))
+edu.sq <- I(edu^2) 
+exp.sq <- I(exp^2) 
 
-#bestglm(model.df, Ic="AIC")
-#bestglm(model.df, Ic="BIC")
+
+exp.edu <- I(exp*edu) 
+city.edu <- I(as.numeric(city)*edu) 
+exp.reg <- I(exp*as.numeric(reg))
+city.reg <- I(as.numeric(city)*as.numeric(reg)) 
+reg.edu <- I(as.numeric(reg)*edu)
+exp.city <- I(exp*as.numeric(city)) 
+race.emp <- I(as.numeric(race)*emp)
+city.race <- I(as.numeric(city)*as.numeric(race))
+
+model.df <- data.frame(city, race , reg , emp , edu,  exp.edu,
+city.edu,
+exp.reg,
+city.reg,
+reg.edu,
+exp.city,
+race.emp,
+city.race, log(wage))
+
+bestglm(model.df, Ic="AIC")
+bestglm(model.df, Ic="BIC")
+
+# > bestglm(model.df, Ic="AIC")
+# Morgan-Tatar search since factors present with more than 2 levels.
+# BIC
+# Best Model:
+#                Df Sum Sq Mean Sq F value   Pr(>F)    
+# city            1    154   153.9  537.12  < 2e-16 ***
+# race            2    157    78.5  274.08  < 2e-16 ***
+# reg             3     53    17.6   61.44  < 2e-16 ***
+# emp             1     26    26.2   91.30  < 2e-16 ***
+# edu             1    955   955.3 3333.85  < 2e-16 ***
+# exp.edu         1    912   911.7 3181.70  < 2e-16 ***
+# city.edu        1     12    11.8   41.11 1.47e-10 ***
+# city.reg        1      5     5.0   17.38 3.07e-05 ***
+# exp.city        1     49    49.4  172.42  < 2e-16 ***
+# Residuals   19845   5687     0.3                     
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# There were 50 or more warnings (use warnings() to see the first 50)
+# > bestglm(model.df, Ic="BIC")
+# Morgan-Tatar search since factors present with more than 2 levels.
+# BIC
+# Best Model:
+#                Df Sum Sq Mean Sq F value   Pr(>F)    
+# city            1    154   153.9  537.12  < 2e-16 ***
+# race            2    157    78.5  274.08  < 2e-16 ***
+# reg             3     53    17.6   61.44  < 2e-16 ***
+# emp             1     26    26.2   91.30  < 2e-16 ***
+# edu             1    955   955.3 3333.85  < 2e-16 ***
+# exp.edu         1    912   911.7 3181.70  < 2e-16 ***
+# city.edu        1     12    11.8   41.11 1.47e-10 ***
+# city.reg        1      5     5.0   17.38 3.07e-05 ***
+# exp.city        1     49    49.4  172.42  < 2e-16 ***
+# Residuals   19845   5687     0.3                     
+# ---
+# Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+# There were 50 or more warnings (use warnings() to see the first 50)
 
 ```
 
@@ -173,5 +293,14 @@ model.df <- data.frame(city, race , reg , emp , edu,  exp * edu , city*edu , exp
 vif(model)
 ```
 
-## d. Others
+## d. Discussion
+```{r}
+summary(lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race +
+  emp + reg + deg + edu + city:reg + exp:city + exp:reg + exp:emp +
+  city:deg + exp:deg + race:emp + race:deg + reg:deg + city:edu +
+  exp:edu + reg:edu + exp:race + race:edu + emp:edu + exp:city:edu +
+  city:reg:edu + race:emp:edu + exp:race:edu, data = data))$adj.r.squared
+```
+This model had the highest adjusted R-squared, but I didn't employ this as the final model because it is far from parsimonious or interpretable. Besides, it is only an 0.02% increase in adjusted R-squred from my final model.
 
+A way to increase adjusted R-squared would be to brute force it, where you try every possible combination of interactions and higher order terms and keep your computer running forever until you reach a target value (say, 50%). It would be interesting to see what model you would get, but I assume it won't be very interpretable.

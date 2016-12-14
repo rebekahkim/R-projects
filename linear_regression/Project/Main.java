@@ -32,7 +32,7 @@ class Main
     // Driver code
     public static void main(String[] args)
     {
-        String set[] = {"edu", "exp", "city", "reg", "race","deg","com","emp"};
+        String set[] = {"edu", "exp", "city", "reg", "race","deg","com","emp", "edu^2", "exp^2"};
         printSubsets(set);
     }
 }

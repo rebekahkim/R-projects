@@ -17,8 +17,12 @@ require(gridExtra)
 ## I. Introduction
 ### a. Goal of analysis
 #### Research Questions
+We would like to know the answer to the following research questions:
+
 > 1. Do Blacks have statistically different wages compared to Whites?
 > 2. Do Blacks have statistically different wages compared to all other races?
+
+and build a model that takes relevant predictors for the response, wage.
 
 ### b. Setup
 ```{r}
@@ -33,10 +37,6 @@ test.data <- df[index,]
 
 ### c. Exploratory Data Analysis with Interaction Plots
 ```{r message=FALSE}
-head(df)
-str(df)
-
-
 # Race (race) by Region (reg)
 ggplot(data, aes(x = race, y = log(wage)))+
   geom_boxplot() +
@@ -75,9 +75,6 @@ plot6<- ggplot(data, aes(x = deg, y = log(wage))) +
 
 grid.arrange(plot5, plot6, nrow=1)
 
-
-par(mfrow=c(2,4))
-
 exp <- data$exp
 edu <- data$edu
 city <- data$city
@@ -86,36 +83,16 @@ reg <- data$reg
 emp <- data$emp
 wage <- data$wage
 
+par(mfrow=c(2,3))
+
 # City vs. region (yes)
 interaction.plot(city,reg,log(wage))
 
+# race vs. region- lines cross (but not significant upon inspection)
+interaction.plot(reg, race,log(wage))
 
-# race vs. region- lines cross
-interaction.plot(race,reg,log(wage))
-
-
-# race vs. city- slightly different slopes (included)
-interaction.plot(race,city,log(wage))
-
-#exp:edu
-
-#interaction.plot(exp, edu, log(wage))
-
-#city:edu 
-interaction.plot(city, edu, log(wage))
-
-#exp:reg 
-interaction.plot(reg, exp, log(wage))
-
-#reg:edu 
-interaction.plot(reg, edu, log(wage))
-
-#exp:city 
-interaction.plot(city, exp, log(wage))
-
-# race:emp
-interaction.plot(race, emp, log(wage))
-
+# race vs. city- different slopes (slightly significant)
+interaction.plot(race, city, log(wage))
 ```
 
 ## II. Statistical Model
@@ -124,7 +101,7 @@ interaction.plot(race, emp, log(wage))
 # log transformation of response, quadratic edu and exp, and interactions added
 model <- lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race + 
     reg + emp + edu + exp:edu + city:edu + exp:reg + city:reg + 
-    reg:edu + exp:city + race:emp + city:race, data = data)
+    reg:edu + exp:city + city:race, data = data)
 summary(model)
 summary(model)$r.squared
 summary(model)$adj.r.squared
@@ -132,65 +109,34 @@ extractAIC(model)
 ```
 
 ## III. Research Question
-### a. Setup
-$H_0 : \beta_{white}=0$
 
-$H_0 : \beta_{other}=0$ 
+### Interaction
 
-$H_0 : \beta_{other}= \beta_{white}$
-
-### b. Discussion & Conclusion
-
-It would have been interesting to have data on what types of jobs blacks and other race groups had and compare the wages within the same job. Obviously, doctors get paid more than janitors; it would be interesting to compare the wages of black doctors and white doctors. Then, we would be able to study the wage gap that may exist between racial groups doing similar job. Another interesting follow-up study would be to observe if there is job discrimination, maybe analyzing how the rates of different race groups entering high-paying professions compare.
-
-With this study, we cannot know the reason behind pay discrepancy. But it seems like whether blacks have statistically different wages compared to whites and all race groups depends on other variables (interactions). The summary output shows that there is no significant interaction between race and number of employees in company. However, there is significant interacton between race and city-living - 
-
-## IV. Appendix
-
-### a. Model Selection
-#### Transformation
-The QQ-plot below that shows the untransformed response looks very bad (barely aligns with the 45 degree line). The model's QQ-plot shows that a log transformation of the response is a good choice. 
-
+Before we do our testing, it is important to note that city predictor interacts with race. However, the interaction is not overwhelmingly significant; the p-values are near 0.05
 ```{r}
-par(mfrow=c(2,3))
-qqnorm(rstudent(lm(wage~edu+exp+city+reg+race+deg+com+emp, data=data)))
-qqnorm(rstudent(model))
+summary(lm(log(wage)~race*city))
 ```
 
-#### Functional Forms
-According to EDA, experience and education seem to have quadratic forms. Thus, both predictor variables had second-order terms included in the final model.
+Indeed, you can see from the EDA and interaction graphs that there is wage difference for different racial groups living in cities versus not.
 
-#### Unselected/Selected Variables Based on EDA and Intuition
-The basic model where all predictors were used didn't do very well.
-The commute distance did not seem to have an effect the response, according to EDA. 
-The college degree information is included in the edu data.
+### Research Question 1
+$H_0 : \beta_{white}=0, \space \space H_A : \beta_{white} \neq 0$
 
-Education level is a well-supported predictor for wage. The number of employees serves as a proxy for company size. Usually, large corporations pay more, so it should be included in the model. The EDA plot of log(wage) vs. emp indeed shows a slight upward linear trend for all racial groups. 
+$t_{calc} = 9.286, \space \space p-value < 2e-16 < 0.05$
+We reject the null hypothesis. White has significant slope and differs from black. 
 
-#### Interactions
-I originally looked at various interaction plots to decide which interaction terms to include. Then I got curious and wrote a small Python script to generate all subsets of the 8 predictor variables, then ran a stepwise regression on it to come up with the final model. I got rid of interactions that were more than two-way, since they only boosted the adjusted R-squared by a little bit and are not very interpretable, and got the current model.
+### Research Question 2
 
-#### Other Model Candidates
-```{r}
-# Candidate 1: basic model
-summary(lm(wage~edu+exp+city+reg+race+deg+emp+com,data=train.data))$adj.r.squared
-extractAIC(lm(wage~edu+exp+city+reg+race+deg+emp+com,data=train.data))
+$H_0 : \beta_{other}=0, \space \space H_A : \beta_{other} \neq 0$ 
 
-# Candidate 2: log transformation of response
-summary(lm(log(wage)~edu+exp+city+reg+race+deg+emp+com,data=train.data))$adj.r.squared
-extractAIC(lm(log(wage)~edu+exp+city+reg+race+deg+emp+com,data=train.data))
+$t_{calc} = 8.578, \space \space p-value < 2e-16 < 0.050$
 
-# Candidate 3: polynomials for edu and exp added
-summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg,data=train.data))$adj.r.squared
-extractAIC(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg,data=train.data))
-```
+We reject the null hypothesis. Other racial group has significant slope and differs from black.
 
-In the end, my final model has the highest unadjusted (0.3546687) and adjusted R-squared (0.35379) and the lowest AIC (-26671.65) among the above three.
-
-
-### b. Diagnostics and Model Validation
+$H_0 : \beta_{other}= \beta_{white}, \space \space H_A : \beta_{other} \neq \beta_{white}$
 
 ```{r}
+# Manually defining the predictors in the final model to manipulate it for testing
 city <- I(data$city=="yes")
 white <- I(data$race=="white")
 other <- I(data$race=="other")
@@ -222,14 +168,79 @@ northeast.edu <- I(northeast*edu)
 west.edu <- I(west*edu)
 
 exp.cityyes <- I(exp*city)
-white.emp <- I(white*emp)
-other.emp <- I(other*emp)
 white.cityyes <- I(city*white)
 other.cityyes <- I(city*other)
 
 #same as the original final model- just manually inputted predictor
-model.manual <- lm(lwage~lineaeexp +quadexp +lineaeedu +quadedu  +city +other +white +northeast +south +west +emp +exp.edu +cityyes.edu +exp.south +exp.northeast +exp.west +cityyes.south +cityyes.west +cityyes.northeast +south.edu +northeast.edu +west.edu +exp.cityyes +white.emp +other.emp +white.cityyes +other.cityyes)
+#full model
+model.manual <- lm(lwage~lineaeexp +quadexp +lineaeedu +quadedu  +city +other +white +
+northeast +south +west +emp +exp.edu +cityyes.edu +exp.south +exp.northeast +exp.west +
+cityyes.south +cityyes.west +cityyes.northeast +south.edu +northeast.edu +west.edu +
+exp.cityyes +white.cityyes +other.cityyes)
 
+#reduced model (notice I(other+white))
+reduced.model <- lm(lwage~lineaeexp +quadexp +lineaeedu +quadedu  +city +I(other+white) +
+northeast +south +west +emp +exp.edu +cityyes.edu +exp.south +exp.northeast +exp.west +
+cityyes.south +cityyes.west +cityyes.northeast +south.edu +northeast.edu +west.edu +exp.cityyes +
+white.cityyes +other.cityyes)
+
+anova(model.manual, reduced.model)
+```
+$f_{calc} = 0.0102, \space \space p-value = 0.9194 > 0.05$
+
+We fail to reject the null hypothesis; it is plausible to assume that white and other race groups do not differ.
+
+### Discussion & Conclusion
+Our testings have shown that both research questions are supported. Blacks have statistically different wages compared to whites. And since it is plausible to assume that there is no difference between wages earned by whites and others, blacks have statistically different wages compared to all other race groupsin, in conjunction with the first research question testing. However, with the interaction in mind, whether there is a significant difference in wage between race group depends on other variable, city, and possibly others that I may have missed in the model.
+
+With this study, we cannot know the reason behind pay discrepancy. It would have been interesting to have data on what types of jobs each data point had and compare the wages of different racial groups within the same job. Obviously, doctors get paid more than janitors; we would learn more comparing the wages of black doctors and white doctors. Then, we would be able to study the wage gap that may exist between racial groups doing similar job. Another interesting follow-up study would be to observe if there is job discrimination, maybe analyzing how the rates of different race groups entering high-paying professions compare.
+
+## IV. Appendix
+
+### a. Model Selection
+#### Transformation
+The QQ-plot below that shows the untransformed response looks very bad (barely aligns with the 45 degree line). The model's QQ-plot shows that a log transformation of the response is a good choice. 
+
+```{r}
+par(mfrow=c(2,3))
+qqnorm(rstudent(lm(wage~edu+exp+city+reg+race+deg+com+emp, data=data)))
+qqnorm(rstudent(model))
+```
+
+#### Functional Forms
+According to EDA, experience and education seem to have quadratic forms. Thus, both predictor variables had second-order terms included in the final model.
+
+#### Other Model Candidates
+```{r}
+# Candidate 1: basic model
+summary(lm(wage~edu+exp+city+reg+race+deg+emp+com,data=train.data))$adj.r.squared
+extractAIC(lm(wage~edu+exp+city+reg+race+deg+emp+com,data=train.data))
+
+# Candidate 2: log transformation of response
+summary(lm(log(wage)~edu+exp+city+reg+race+deg+emp+com,data=train.data))$adj.r.squared
+extractAIC(lm(log(wage)~edu+exp+city+reg+race+deg+emp+com,data=train.data))
+
+# Candidate 3: polynomials for edu and exp added
+summary(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+city+reg+race+deg+emp,data=train.data))$adj.r.squared
+extractAIC(lm(log(wage)~edu+I(edu^2)+exp+I(exp^2)+
+                city+reg+race+deg+emp,data=train.data))
+```
+
+In the end, my final model has the highest unadjusted (0.3544812) and adjusted R-squared (0.3536674) and the lowest AIC (-26669.88) compared to the above three.
+
+#### Unselected/Selected Variables Based on EDA and Intuition
+The basic model where all predictors were used didn't do very well.
+The commute distance did not seem to have an effect the response, according to EDA. 
+The college degree information is in a way included in the edu data, so I took it out to avoid overcrowding.
+
+Education level is a well-supported predictor for wage. The number of employees serves as a proxy for company size. Usually, large corporations pay more, so it would be reasonable to include it in the model. The EDA plot of log(wage) vs. emp indeed shows a slight upward linear trend for all racial groups. 
+
+#### Interactions
+I originally looked at various interaction plots to decide which interaction terms to include. Then I got curious and wrote a small Python script to generate all subsets of the 8 predictor variables, then ran a stepwise regression on it to come up with the final model. I got rid of interactions that were more than two-way, since they only boosted the adjusted R-squared by a little bit and are not very interpretable. I also looked at the summary output and got rid of interactions that were not significant (p < 0.05).
+
+### b. Diagnostics and Model Validation
+
+```{r}
 # Define test data frame for test data
 city.test <- I(test.data$city=="yes")
 white.test <- I(test.data$race=="white")
@@ -260,48 +271,17 @@ northeast.edu.test <- I(northeast.test*lineaeedu.test)
 west.edu.test <- I(west.test*lineaeedu.test)
 
 exp.cityyes.test <- I(lineaeexp.test*city.test)
-white.emp.test <- I(white.test*emp.test)
-other.emp.test <- I(other.test*emp.test)
 white.cityyes.test <- I(city.test*white.test)
 other.cityyes.test <- I(city.test*other.test)
 
 
-X.test <- data.frame(city = city.test, 
-white = white.test, 
-other= other.test, 
-northeast= northeast.test, 
-south = south.test, 
-west= west.test, 
-lineaeexp= lineaeexp.test, 
-quadexp= quadexp.test, 
-lineaeedu= lineaeedu.test, 
-quadedu= quadedu.test, 
-emp= emp.test, 
-exp.edu = exp.edu.test, 
-cityyes.edu= cityyes.edu.test, 
-exp.south= exp.south.test, 
-exp.northeast= exp.northeast.test, 
-exp.west= exp.west.test, 
-cityyes.south= cityyes.south.test, 
-cityyes.west= cityyes.west.test, 
-cityyes.northeast= cityyes.northeast.test, 
-south.edu= south.edu.test, 
-northeast.edu = northeast.edu.test, 
-west.edu = west.edu.test, 
-exp.cityyes= exp.cityyes.test, 
-white.emp= white.emp.test, 
-other.emp= other.emp.test, 
-white.cityyes= white.cityyes.test, 
-other.cityyes= other.cityyes.test)
-
+X.test <- data.frame(city = city.test, white = white.test, other= other.test, northeast= northeast.test, south = south.test, west= west.test, lineaeexp= lineaeexp.test, quadexp= quadexp.test, lineaeedu= lineaeedu.test, quadedu= quadedu.test, emp= emp.test, exp.edu = exp.edu.test, cityyes.edu= cityyes.edu.test, exp.south= exp.south.test, exp.northeast= exp.northeast.test, exp.west= exp.west.test, cityyes.south= cityyes.south.test, cityyes.west= cityyes.west.test, cityyes.northeast= cityyes.northeast.test, south.edu= south.edu.test, northeast.edu = northeast.edu.test, west.edu = west.edu.test, exp.cityyes= exp.cityyes.test, white.cityyes= white.cityyes.test, other.cityyes= other.cityyes.test)
 
 y.hat.mspr <- predict(model.manual,newdata = X.test)
 
 # Compute MSPR
 n.star <- nrow(test.data)
-
 MSPR <- 1/n.star*sum((lwage.test-y.hat.mspr)^2)
-
 MSE <- (summary(lm(model.manual))$sigma)^2
 
 # Compare MSPR  to MSE
@@ -324,12 +304,14 @@ y.intc <- 2/sqrt(n)
 dfplot1 <-ggplot(data, aes(x =x, y = dfbetas(model)[,6])) +
   geom_point() +
   geom_hline(aes(yintercept = y.intc, col= "red")) +
-  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none") + labs(title="DFBETAS-Race:Other")
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+
+  theme(legend.position="none") + labs(title="DFBETAS-Race:Other")
       
 dfplot2 <-ggplot(data, aes(x =x, y = dfbetas(model)[,7])) +
   geom_point() +
   geom_hline(aes(yintercept = y.intc, col= "red")) +
-  geom_hline(aes(yintercept = -y.intc, col = "red"))+ theme(legend.position="none")+labs(title="DFBETAS-Race:White")
+  geom_hline(aes(yintercept = -y.intc, col = "red"))+
+  theme(legend.position="none")+labs(title="DFBETAS-Race:White")
 
 grid.arrange(dfplot1,dfplot2, nrow=1)
 ```
@@ -341,9 +323,8 @@ mean(vif(model)[,3])
 
 numeric_preds <- data.frame(lwage=lwage, edu=edu, exp=exp, edu.sq = quadedu, exp.sq = quadexp, exp.edu = exp.edu,  emp=emp)
 cor(numeric_preds)
-             
 ```
-The average VIF 4.605 > 1. This is probably because I have many interaction terms. For example, the interaction exp:edu will probably be correlated to exp and edu. Upon inspecting the correlation between the numeric predictors, the exp.edu to edu and exp have high correlation, at around 0.87. However, otherwise, the correlation matrix does not look bad. It may be good to try PCA or ridge regression. 
+The average VIF 4.512 > 1. This is probably because I have many interaction terms. For example, the interaction exp:edu will probably be correlated to exp and edu. Upon inspecting the correlation between the numeric predictors, the exp.edu to edu and exp have high correlation, at around 0.87. However, otherwise, the correlation matrix does not look bad. It may be good to try PCA or ridge regression. 
 
 ## d. Other Ideas on Model Selection
 ```{r}
@@ -353,6 +334,6 @@ summary(lm(formula = log(wage) ~ I(edu^2) + exp + I(exp^2) + city + race +
   exp:edu + reg:edu + exp:race + race:edu + emp:edu + exp:city:edu +
   city:reg:edu + race:emp:edu + exp:race:edu, data = data))$adj.r.squared
 ```
-This model had the highest adjusted R-squared, but I didn't employ this as the final model because it is far from parsimonious or interpretable. Besides, it is only an 0.02% increase in adjusted R-squred from my final model.
+This model had the highest adjusted R-squared, but I didn't employ this as the final model because it is far from parsimonious or interpretable. Besides, it is only an 0.005% increase in adjusted R-squred from my final model.
 
-A way to increase adjusted R-squared would be to brute force it, where you try every possible combination of interactions and higher order terms and keep your computer running forever until you reach a target value (say, 50%). It would be interesting to see what model you would get, but I assume it won't be very interpretable.
+A way to increase adjusted R-squared would be to brute forc2e it, where you try every possible combination of interactions and higher order terms and keep your computer running forever until you reach a target value (say, 50%). It would be interesting to see what model you would get, but I assume it won't be very interpretable.

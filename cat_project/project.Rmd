@@ -1,0 +1,25 @@
+---
+title: "STAT UN2104 Project"
+author: "Rebekah Kim"
+date: "5/4/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction
+```{r}
+credit <- read.table("credit-data.txt", header=T)
+jobsat <- read.table("jobsat-data.txt", header=T)
+
+
+head(credit)
+str(credit)
+
+
+
+```
+
+### Executive Summary

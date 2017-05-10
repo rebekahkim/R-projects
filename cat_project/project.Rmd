@@ -7,19 +7,52 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 ### Introduction
+#### Research Quetion
+> What variables (running account, duration, payment, purpose, marital tatus and gender, employment, and age) significantly influences credit rating?
+
+We can construct a model to answer this question and predict which variables have statistically significant influence on credit rating.
+
+#### Set-up
 ```{r}
 credit <- read.table("credit-data.txt", header=T)
-jobsat <- read.table("jobsat-data.txt", header=T)
-
-
-head(credit)
-str(credit)
-
-
-
 ```
 
+#### Explore Data
+```{r}
+head(credit)
+tail(credit)
+str(credit)
+```
+
+### Statistical Model
+#### Preliminary Model
+```{r}
+credit.logit <- glm(formula=y~factor(running_acct)+duration+factor(payment)+factor(purpose)+factor(marital_and_gender)+factor(current_employ)+age, data=credit, family=binomial)
+summary(credit.logit)
+pchisq(q=1221.73-966.66, df=999-974, lower.tail = F)
+```
+
+The p-value is extremely small, meaning we can use these variables to form an appropriate model.
+
+```{r}
+credit.logit.gender <- glm(formula=y~factor(marital_and_gender), data=credit, family=binomial)
+summary(credit.logit.gender)
+```
+It is plausible to rid the marital status and gender variable since it does not have a significant influence over credit (fail to reject $H_0$).
+
 ### Executive Summary
+
+After testing, the variables separately, it seems that the marital_and_gender variable was the only explanatory variable that did not have a statistically significant effect on the response, credit rating. There maybe interactions between the variables, but I do not see a reasonable theoretical explanation for including interactions terms in the model. You can probably bruteforce it (maybe stepwise regression) and try every possible combination of interactions and higher order terms and keep your computer running forever until you reach the minimum AIC. It would be interesting to see what model you would get, but I assume it won’t be very interpretable.
+
+In the end, my final model is the following (it has a slightly lower AIC than the preliminary model):
+```{r}
+credit.logit <- glm(formula=y~factor(running_acct)+duration+factor(payment)+factor(purpose)+factor(current_employ)+age, data=credit, family=binomial)
+summary(credit.logit)
+```
+
+
+

@@ -125,9 +125,20 @@ $(document).ready(function () {
 
 <div id="introduction" class="section level3">
 <h3>Introduction</h3>
-<pre class="r"><code>data &lt;- read.table(&quot;credit-data.txt&quot;, header=T)
-
-head(data)</code></pre>
+<div id="research-quetion" class="section level4">
+<h4>Research Quetion</h4>
+<blockquote>
+<p>What variables (running account, duration, payment, purpose, marital tatus and gender, employment, and age) significantly influences credit rating?</p>
+</blockquote>
+<p>We can construct a model to answer this question and predict which variables have statistically significant influence on credit rating.</p>
+</div>
+<div id="set-up" class="section level4">
+<h4>Set-up</h4>
+<pre class="r"><code>credit &lt;- read.table(&quot;credit-data.txt&quot;, header=T)</code></pre>
+</div>
+<div id="explore-data" class="section level4">
+<h4>Explore Data</h4>
+<pre class="r"><code>head(credit)</code></pre>
 <pre><code>##   y running_acct duration payment purpose marital_and_gender
 ## 1 1            1       18       4       2                  2
 ## 2 1            1        9       4       0                  3
@@ -142,7 +153,22 @@ head(data)</code></pre>
 ## 4              3  39
 ## 5              3  38
 ## 6              2  48</code></pre>
-<pre class="r"><code>str(data)</code></pre>
+<pre class="r"><code>tail(credit)</code></pre>
+<pre><code>##      y running_acct duration payment purpose marital_and_gender
+## 995  0            1       12       0       3                  3
+## 996  0            1       24       2       3                  3
+## 997  0            1       24       2       0                  3
+## 998  0            4       21       4       0                  3
+## 999  0            2       12       2       3                  3
+## 1000 0            1       30       2       2                  3
+##      current_employ age
+## 995               3  28
+## 996               3  21
+## 997               5  45
+## 998               5  30
+## 999               1  52
+## 1000              5  31</code></pre>
+<pre class="r"><code>str(credit)</code></pre>
 <pre><code>## 'data.frame':    1000 obs. of  8 variables:
 ##  $ y                 : int  1 1 1 1 1 1 1 1 1 1 ...
 ##  $ running_acct      : int  1 1 2 1 1 1 1 1 4 2 ...
@@ -153,8 +179,145 @@ head(data)</code></pre>
 ##  $ current_employ    : int  2 3 4 3 3 2 4 2 1 1 ...
 ##  $ age               : int  21 36 23 39 38 48 39 40 65 23 ...</code></pre>
 </div>
+</div>
+<div id="statistical-model" class="section level3">
+<h3>Statistical Model</h3>
+<div id="preliminary-model" class="section level4">
+<h4>Preliminary Model</h4>
+<pre class="r"><code>credit.logit &lt;- glm(formula=y~factor(running_acct)+duration+factor(payment)+factor(purpose)+factor(marital_and_gender)+factor(current_employ)+age, data=credit, family=binomial)
+summary(credit.logit)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ factor(running_acct) + duration + factor(payment) + 
+##     factor(purpose) + factor(marital_and_gender) + factor(current_employ) + 
+##     age, family = binomial, data = credit)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.5579  -0.7967   0.4390   0.7510   2.3504  
+## 
+## Coefficients:
+##                              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)                 -1.684836   0.736851  -2.287 0.022223 *  
+## factor(running_acct)2        0.546736   0.197034   2.775 0.005523 ** 
+## factor(running_acct)3        1.138064   0.349873   3.253 0.001143 ** 
+## factor(running_acct)4        1.828437   0.214811   8.512  &lt; 2e-16 ***
+## duration                    -0.044569   0.006977  -6.388 1.68e-10 ***
+## factor(payment)1             0.029885   0.497748   0.060 0.952124    
+## factor(payment)2             0.964900   0.394610   2.445 0.014477 *  
+## factor(payment)3             0.975245   0.452747   2.154 0.031235 *  
+## factor(payment)4             1.566334   0.417564   3.751 0.000176 ***
+## factor(purpose)1             1.431129   0.337615   4.239 2.25e-05 ***
+## factor(purpose)2             0.645790   0.242632   2.662 0.007777 ** 
+## factor(purpose)3             0.826952   0.227473   3.635 0.000278 ***
+## factor(purpose)4             0.632958   0.743979   0.851 0.394895    
+## factor(purpose)5             0.129564   0.513032   0.253 0.800619    
+## factor(purpose)6            -0.309438   0.374580  -0.826 0.408751    
+## factor(purpose)8             1.714386   1.139397   1.505 0.132416    
+## factor(purpose)9             0.627041   0.312622   2.006 0.044883 *  
+## factor(purpose)10            1.141778   0.718214   1.590 0.111892    
+## factor(marital_and_gender)2  0.151749   0.359344   0.422 0.672810    
+## factor(marital_and_gender)3  0.524755   0.348079   1.508 0.131664    
+## factor(marital_and_gender)4  0.363485   0.426872   0.852 0.394487    
+## factor(current_employ)2      0.005296   0.365389   0.014 0.988437    
+## factor(current_employ)3      0.294557   0.342404   0.860 0.389644    
+## factor(current_employ)4      0.863218   0.381693   2.262 0.023725 *  
+## factor(current_employ)5      0.200141   0.350433   0.571 0.567915    
+## age                          0.014115   0.008198   1.722 0.085107 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1221.73  on 999  degrees of freedom
+## Residual deviance:  966.66  on 974  degrees of freedom
+## AIC: 1018.7
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
+<pre class="r"><code>pchisq(q=1221.73-966.66, df=999-974, lower.tail = F)</code></pre>
+<pre><code>## [1] 5.388202e-40</code></pre>
+<p>The p-value is extremely small, meaning we can use these variables to form an appropriate model.</p>
+<pre class="r"><code>credit.logit.gender &lt;- glm(formula=y~factor(marital_and_gender), data=credit, family=binomial)
+summary(credit.logit.gender)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ factor(marital_and_gender), family = binomial, 
+##     data = credit)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.6264  -1.4458   0.7872   0.7964   1.0108  
+## 
+## Coefficients:
+##                             Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept)                   0.4055     0.2887   1.405    0.160  
+## factor(marital_and_gender)2   0.2065     0.3122   0.661    0.508  
+## factor(marital_and_gender)3   0.6074     0.3044   1.995    0.046 *
+## factor(marital_and_gender)4   0.5804     0.3718   1.561    0.119  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1221.7  on 999  degrees of freedom
+## Residual deviance: 1212.3  on 996  degrees of freedom
+## AIC: 1220.3
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>It is plausible to rid the marital status and gender variable since it does not have a significant influence over credit (fail to reject <span class="math inline">\(H_0\)</span>).</p>
+</div>
+</div>
 <div id="executive-summary" class="section level3">
 <h3>Executive Summary</h3>
+<p>After testing, the variables separately, it seems that the marital_and_gender variable was the only explanatory variable that did not have a statistically significant effect on the response, credit rating. There maybe interactions between the variables, but I do not see a reasonable theoretical explanation for including interactions terms in the model. You can probably bruteforce it (maybe stepwise regression) and try every possible combination of interactions and higher order terms and keep your computer running forever until you reach the minimum AIC. It would be interesting to see what model you would get, but I assume it won’t be very interpretable.</p>
+<p>In the end, my final model is the following (it has a slightly lower AIC than the preliminary model):</p>
+<pre class="r"><code>credit.logit &lt;- glm(formula=y~factor(running_acct)+duration+factor(payment)+factor(purpose)+factor(current_employ)+age, data=credit, family=binomial)
+summary(credit.logit)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ factor(running_acct) + duration + factor(payment) + 
+##     factor(purpose) + factor(current_employ) + age, family = binomial, 
+##     data = credit)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.4984  -0.8284   0.4415   0.7599   2.2627  
+## 
+## Coefficients:
+##                          Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)             -1.370431   0.633546  -2.163 0.030533 *  
+## factor(running_acct)2    0.538230   0.195893   2.748 0.006004 ** 
+## factor(running_acct)3    1.117860   0.347158   3.220 0.001282 ** 
+## factor(running_acct)4    1.830767   0.214195   8.547  &lt; 2e-16 ***
+## duration                -0.043294   0.006895  -6.279 3.40e-10 ***
+## factor(payment)1         0.019600   0.494608   0.040 0.968391    
+## factor(payment)2         0.931077   0.390082   2.387 0.016992 *  
+## factor(payment)3         0.990275   0.449059   2.205 0.027439 *  
+## factor(payment)4         1.549636   0.413513   3.747 0.000179 ***
+## factor(purpose)1         1.427934   0.336854   4.239 2.24e-05 ***
+## factor(purpose)2         0.591164   0.239770   2.466 0.013681 *  
+## factor(purpose)3         0.812043   0.225388   3.603 0.000315 ***
+## factor(purpose)4         0.554640   0.738424   0.751 0.452584    
+## factor(purpose)5         0.133907   0.513536   0.261 0.794282    
+## factor(purpose)6        -0.339791   0.372605  -0.912 0.361803    
+## factor(purpose)8         1.720970   1.134147   1.517 0.129162    
+## factor(purpose)9         0.594933   0.309452   1.923 0.054538 .  
+## factor(purpose)10        1.103986   0.701719   1.573 0.115659    
+## factor(current_employ)2 -0.029662   0.363926  -0.082 0.935040    
+## factor(current_employ)3  0.310421   0.341556   0.909 0.363433    
+## factor(current_employ)4  0.924482   0.380962   2.427 0.015237 *  
+## factor(current_employ)5  0.246648   0.349312   0.706 0.480128    
+## age                      0.015349   0.008107   1.893 0.058331 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1221.7  on 999  degrees of freedom
+## Residual deviance:  971.9  on 977  degrees of freedom
+## AIC: 1017.9
+## 
+## Number of Fisher Scoring iterations: 5</code></pre>
 </div>
 
 

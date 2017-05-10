@@ -1,0 +1,61 @@
+---
+title: "STAT UN2104 Project"
+author: "Rebekah Kim"
+date: "5/4/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+### Introduction
+#### Research Quetion
+> How is employee satisfaction related to available variables (religion, race, age, gender)?
+
+We can construct a model to answer this question and predict which variables have statistically significant influence on employee satisfaction.
+
+#### Set-up
+```{r}
+jobsat <- read.table("jobsat-data.txt", header=T)
+jobsat["satprop"] <- jobsat$sat/(jobsat$sat + jobsat$unsat)
+
+credit <- read.table("credit-data.txt", header=T)
+
+```
+
+#### Exploratory Data Analysis
+```{r}
+head(jobsat)
+tail(jobsat)
+str(jobsat)
+
+ggplot(jobsat, aes(x= race, y = satprop)) +
+  geom_boxplot() +
+  facet_wrap(~age, nrow=1)
+
+
+ggplot(jobsat, aes(x= gender, y = satprop)) +
+  geom_boxplot() +
+  facet_wrap(~region, nrow=1)
+```
+
+### Statistical Model
+```{r}
+sat.logit <- glm(formula=sat~factor(region)+race+factor(age)+gender, data=jobsat, family=binomial)
+summary(sat.logit)
+pchisq(q=6.8812-5.1116, df=10,lower.tail = F)
+```
+
+When all variables are entered, there are no significant 
+
+### Executive Summary
+
+
+
+
+
+
+
+
